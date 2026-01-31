@@ -1,5 +1,8 @@
-# Dependencies
+# Dependencies (never commit - exceeds GitHub limit)
 node_modules/
+**/node_modules/
+**/.next/
+.next/
 
 # Build outputs
 dist/
