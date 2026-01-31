@@ -1,0 +1,97 @@
+"use client";
+
+import { useState, useRef, useCallback } from "react";
+
+interface SliderRevealProps {
+  beforeLabel?: string;
+  afterLabel?: string;
+  beforeContent?: React.ReactNode;
+  afterContent?: React.ReactNode;
+  className?: string;
+}
+
+export function SliderReveal({
+  beforeLabel = "Original",
+  afterLabel = "Try-On",
+  beforeContent,
+  afterContent,
+  className = "",
+}: SliderRevealProps) {
+  const [value, setValue] = useState(50);
+  const [isDragging, setIsDragging] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleMove = useCallback(
+    (clientX: number) => {
+      const el = containerRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const x = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      setValue(x * 100);
+    },
+    []
+  );
+
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      setIsDragging(true);
+      handleMove(e.clientX);
+    },
+    [handleMove]
+  );
+  const handlePointerUp = useCallback(() => setIsDragging(false), []);
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      if (isDragging) handleMove(e.clientX);
+    },
+    [isDragging, handleMove]
+  );
+
+  return (
+    <div
+      ref={containerRef}
+      className={`relative select-none touch-none overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 ${className}`}
+      style={{ touchAction: "none" }}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      onPointerLeave={handlePointerUp}
+      onPointerMove={handlePointerMove}
+    >
+      <div className="relative aspect-[3/4] bg-zinc-100 dark:bg-zinc-800">
+        {/* Before (left) */}
+        <div
+          className="absolute inset-0 flex items-center justify-center bg-zinc-200 dark:bg-zinc-700"
+          style={{ clipPath: `inset(0 ${100 - value}% 0 0)` }}
+        >
+          {beforeContent ?? (
+            <span className="text-zinc-500 dark:text-zinc-400 text-sm font-body">
+              {beforeLabel}
+            </span>
+          )}
+        </div>
+        {/* After (right) */}
+        <div
+          className="absolute inset-0 flex items-center justify-center bg-accent/20"
+          style={{ clipPath: `inset(0 0 0 ${value}%)` }}
+        >
+          {afterContent ?? (
+            <span className="text-accent text-sm font-body font-medium">
+              {afterLabel}
+            </span>
+          )}
+        </div>
+        {/* Slider line */}
+        <div
+          className="absolute top-0 bottom-0 w-1 bg-white dark:bg-zinc-200 shadow-md"
+          style={{ left: `${value}%`, transform: "translateX(-50%)" }}
+        />
+        <div
+          className="absolute top-1/2 left-0 -translate-y-1/2 w-11 h-11 sm:w-8 sm:h-8 rounded-full bg-white dark:bg-zinc-200 shadow-lg border border-zinc-200 dark:border-zinc-700 flex items-center justify-center cursor-ew-resize touch-manipulation"
+          style={{ left: `${value}%`, transform: "translate(-50%, -50%)" }}
+        >
+          <span className="text-zinc-500 text-xs">⟷</span>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,18 @@
+{
+  "name": "fashion-intelligence-aggregator",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n server,frontend -c blue,green \"npm run dev:server\" \"npm run dev:frontend\"",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev:server": "npm run dev --workspace=server",
+    "install:all": "npm install && npm install --workspace=frontend && npm install --workspace=server"
+  },
+  "workspaces": [
+    "frontend",
+    "server"
+  ],
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
