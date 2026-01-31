@@ -35,7 +35,7 @@ export function BottomSheet({
         aria-hidden
       />
       <div
-        className="fixed left-0 right-0 bottom-0 z-50 max-h-[85vh] sm:max-h-[70vh] md:max-h-[60vh] flex flex-col rounded-t-2xl bg-white dark:bg-zinc-900 border border-b-0 border-zinc-200 dark:border-zinc-800 shadow-2xl transition-transform duration-300 ease-out pb-[env(safe-area-inset-bottom)]"
+        className={`${open ? "animate-sheet-up" : ""} fixed left-0 right-0 bottom-0 z-50 max-h-[85vh] sm:max-h-[70vh] md:max-h-[60vh] flex flex-col rounded-t-2xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-b-0 border-zinc-200/80 dark:border-zinc-700/80 shadow-2xl pb-[env(safe-area-inset-bottom)]`}
         role="dialog"
         aria-label={title}
       >

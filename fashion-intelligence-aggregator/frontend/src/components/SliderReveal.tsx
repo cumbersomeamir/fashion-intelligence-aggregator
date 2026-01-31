@@ -82,14 +82,14 @@ export function SliderReveal({
         </div>
         {/* Slider line */}
         <div
-          className="absolute top-0 bottom-0 w-1 bg-white dark:bg-zinc-200 shadow-md"
+          className="absolute top-0 bottom-0 w-0.5 sm:w-1 bg-white/90 dark:bg-zinc-100 shadow-lg"
           style={{ left: `${value}%`, transform: "translateX(-50%)" }}
         />
         <div
-          className="absolute top-1/2 left-0 -translate-y-1/2 w-11 h-11 sm:w-8 sm:h-8 rounded-full bg-white dark:bg-zinc-200 shadow-lg border border-zinc-200 dark:border-zinc-700 flex items-center justify-center cursor-ew-resize touch-manipulation"
+          className="absolute top-1/2 left-0 -translate-y-1/2 w-12 h-12 rounded-full bg-white dark:bg-zinc-100 shadow-xl border-2 border-accent/50 flex items-center justify-center cursor-ew-resize touch-manipulation ring-2 ring-black/5 dark:ring-white/10 hover:border-accent hover:scale-105 active:scale-100 transition-transform duration-200"
           style={{ left: `${value}%`, transform: "translate(-50%, -50%)" }}
         >
-          <span className="text-zinc-500 text-xs">⟷</span>
+          <span className="text-accent text-sm font-bold">⟷</span>
         </div>
       </div>
     </div>

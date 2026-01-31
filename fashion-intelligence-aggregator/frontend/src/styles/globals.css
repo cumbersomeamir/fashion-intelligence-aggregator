@@ -27,9 +27,65 @@ body {
   display: none;
 }
 
-/* Touch-friendly, disable double-tap zoom on buttons */
+/* Touch-friendly */
 .touch-manipulation {
   touch-action: manipulation;
+}
+
+/* Skeleton shimmer */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgb(228 228 231 / 0.4) 0%,
+    rgb(228 228 231 / 0.8) 50%,
+    rgb(228 228 231 / 0.4) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+.dark .animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgb(39 39 42 / 0.4) 0%,
+    rgb(63 63 70 / 0.8) 50%,
+    rgb(39 39 42 / 0.4) 100%
+  );
+  background-size: 200% 100%;
+}
+
+/* Active card pulse */
+@keyframes card-pulse {
+  0%, 100% { box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.06), 0 0 0 2px rgb(99 102 241 / 0.3); }
+  50% { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.08), 0 0 0 2px rgb(99 102 241 / 0.5); }
+}
+.dark .animate-card-pulse {
+  animation: card-pulse 2s ease-in-out infinite;
+}
+.animate-card-pulse {
+  animation: card-pulse 2s ease-in-out infinite;
+}
+
+/* Bottom sheet slide up */
+@keyframes sheetSlideUp {
+  from { transform: translateY(100%); opacity: 0.8; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.animate-sheet-up {
+  animation: sheetSlideUp 0.35s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+/* Good Fit success animation */
+@keyframes good-fit-pop {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-good-fit {
+  animation: good-fit-pop 0.5s ease-out;
 }
 
 @media (prefers-reduced-motion: reduce) {

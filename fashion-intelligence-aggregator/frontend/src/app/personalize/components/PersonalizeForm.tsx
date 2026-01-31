@@ -33,27 +33,47 @@ export function PersonalizeForm() {
     }
   };
 
+  const hasSaved = (profile?.stylePrefs?.length ?? 0) > 0;
+
   return (
-    <div className="mx-auto max-w-2xl px-3 sm:px-4 py-6 sm:py-8 min-w-0">
-      <Card className="p-4 sm:p-6">
-        <h1 className="font-headline text-xl sm:text-2xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+    <div className="mx-auto max-w-2xl px-3 sm:px-4 py-4 sm:py-6 min-w-0">
+      <Card className="p-4 sm:p-5 shadow-md bg-white/90 dark:bg-zinc-900/90 backdrop-blur-sm">
+        <h1 className="font-headline text-xl sm:text-2xl font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
           Personalize
         </h1>
-        <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mb-5 sm:mb-6">
-          Style preference chips + body data. Saved to global profile. UI copy references Personalization Embeddings.
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-4">
+          Personalization Embeddings — your choices affect <span className="font-medium text-accent">Recommendations</span>.
         </p>
-        <div className="flex flex-wrap gap-2 mb-5 sm:mb-6">
+
+        {hasSaved && (
+          <div className="mb-4 p-3 rounded-xl bg-accent/10 dark:bg-accent/20 border border-accent/20">
+            <p className="text-xs font-semibold uppercase tracking-wider text-accent mb-1.5">Saved preferences</p>
+            <div className="flex flex-wrap gap-1.5">
+              {(profile?.stylePrefs ?? []).map((p) => (
+                <span key={p} className="px-2 py-0.5 rounded-full bg-accent/20 text-accent text-xs font-medium">
+                  {p}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">
+          Style preferences
+        </p>
+        <div className="flex flex-wrap gap-2 mb-4">
           {STYLE_OPTIONS.map((tag) => (
             <button
               key={tag}
               type="button"
               onClick={() => toggle(tag)}
               className={`
-                min-h-[44px] px-4 py-2.5 sm:min-h-0 sm:px-3 sm:py-1.5 rounded-full text-sm transition-colors touch-manipulation active:scale-[0.98]
+                min-h-[44px] px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 touch-manipulation active:scale-[0.98]
+                shadow-sm
                 ${
                   selected.includes(tag)
-                    ? "bg-accent text-white"
-                    : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                    ? "bg-accent text-white shadow-md ring-2 ring-accent/30"
+                    : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 border border-zinc-200/60 dark:border-zinc-700/60"
                 }
               `}
             >
@@ -64,9 +84,9 @@ export function PersonalizeForm() {
         <button
           type="button"
           onClick={handleSave}
-          className="w-full sm:w-auto min-h-[48px] sm:min-h-0 rounded-xl bg-accent text-white px-6 py-3 sm:py-2.5 font-medium hover:bg-accent/90 active:bg-accent/80 transition-colors touch-manipulation"
+          className="w-full min-h-[48px] rounded-xl bg-accent text-white px-6 py-3 font-semibold hover:bg-accent/90 focus:ring-2 focus:ring-accent focus:ring-offset-2 active:bg-accent/80 transition-all touch-manipulation"
         >
-          {saved ? "Saved" : "Save to profile"}
+          {saved ? "✓ Saved to profile" : "Save to profile"}
         </button>
       </Card>
     </div>

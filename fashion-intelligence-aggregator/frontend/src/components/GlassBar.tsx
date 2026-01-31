@@ -24,9 +24,10 @@ export function GlassBar({ variant, onOpenChat }: GlassBarProps) {
     <nav
       className={`
         fixed left-0 right-0 z-40
-        bg-white/70 dark:bg-zinc-900/70 backdrop-blur-[12px]
-        border-b border-zinc-200/80 dark:border-zinc-800
-        safe-area-padding
+        bg-white/60 dark:bg-zinc-900/60 backdrop-blur-xl
+        border-b border-zinc-200/60 dark:border-zinc-700/60
+        shadow-[0_1px_0_0_rgba(255,255,255,0.05)] dark:shadow-[0_1px_0_0_rgba(0,0,0,0.2)]
+        transition-colors duration-200
         ${isTop ? "top-0 pt-[env(safe-area-inset-top)]" : "bottom-0 border-t border-b-0 pb-[env(safe-area-inset-bottom)]"}
       `}
     >
@@ -41,7 +42,7 @@ export function GlassBar({ variant, onOpenChat }: GlassBarProps) {
                 <Link
                   key={href}
                   href={href}
-                  className="shrink-0 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center px-3 py-2 rounded-lg text-zinc-600 dark:text-zinc-400 hover:text-accent dark:hover:text-accent active:bg-zinc-100 dark:active:bg-zinc-800 transition-colors touch-manipulation"
+                  className="shrink-0 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center px-3 py-2 rounded-lg text-zinc-600 dark:text-zinc-400 hover:text-accent dark:hover:text-accent hover:bg-white/50 dark:hover:bg-zinc-800/50 focus:ring-2 focus:ring-accent/30 active:bg-zinc-100 dark:active:bg-zinc-800 transition-all duration-200 touch-manipulation"
                 >
                   {label}
                 </Link>
@@ -54,7 +55,7 @@ export function GlassBar({ variant, onOpenChat }: GlassBarProps) {
           <button
             type="button"
             onClick={onOpenChat}
-            className="min-h-[44px] w-full sm:w-auto sm:min-h-0 px-6 py-3 sm:py-2.5 rounded-xl bg-accent/90 text-white font-medium hover:bg-accent active:bg-accent/80 transition-colors touch-manipulation"
+            className="min-h-[44px] w-full sm:w-auto sm:min-h-0 px-6 py-3 sm:py-2.5 rounded-xl bg-accent/90 text-white font-medium hover:bg-accent hover:shadow-lg hover:shadow-accent/20 focus:ring-2 focus:ring-accent focus:ring-offset-2 active:bg-accent/80 transition-all duration-200 touch-manipulation"
           >
             Open Concierge Chat
           </button>
