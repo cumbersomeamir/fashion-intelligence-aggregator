@@ -1,53 +1,143 @@
 # Fashion Intelligence Aggregator
 
-Monorepo: Next.js frontend + Express backend.
+A monorepo for a fashion intelligence app: **Next.js** frontend (App Router, TypeScript, Tailwind) and **Express** backend (TypeScript). Includes a modular studio UI, concierge chat, product/size/try-on flows, personalization, and recommendations.
+
+---
+
+## Prerequisites
+
+- **Node.js** 18+ (LTS recommended)
+- **npm** 9+
+
+---
 
 ## Quick start
 
-From root:
+From the **repo root** (`fashion-intelligence-aggregator/`):
 
 ```bash
+# Install all dependencies (root + frontend + server)
 npm install
+
+# Run frontend and server together
 npm run dev
 ```
 
-- **Frontend**: http://localhost:3000  
-- **Backend**: http://localhost:8000  
+- **Frontend:** http://localhost:3000  
+- **Backend:** http://localhost:8000  
 
-## Scripts (root)
+---
 
-| Script | Description |
+## Commands
+
+### From repo root
+
+| Command | Description |
 |--------|-------------|
-| `npm run dev` | Runs server + frontend concurrently |
-| `npm run dev:frontend` | Frontend only |
-| `npm run dev:server` | Server only |
-| `npm run install:all` | Install deps in all packages |
+| `npm install` | Install root + workspace dependencies |
+| `npm run dev` | Run **server** and **frontend** together (concurrently) |
+| `npm run dev:frontend` | Run frontend only |
+| `npm run dev:server` | Run server only |
+| `npm run install:all` | Install deps in root and all workspaces |
 
-## Run independently
+### From `frontend/`
 
-- **Frontend**: `cd frontend && npm run dev`  
-- **Server**: `cd server && npm run dev`  
+| Command | Description |
+|--------|-------------|
+| `npm run dev` | Start Next.js dev server (http://localhost:3000) |
+| `npm run build` | Production build |
+| `npm run start` | Start production server (run after `build`) |
+| `npm run lint` | Run Next.js lint |
+
+### From `server/`
+
+| Command | Description |
+|--------|-------------|
+| `npm run dev` | Start Express with hot reload (http://localhost:8000) |
+| `npm run build` | Compile TypeScript to `dist/` |
+| `npm run start` | Run compiled server (run after `build`) |
+
+---
+
+## Project structure
+
+```
+fashion-intelligence-aggregator/
+├── frontend/          # Next.js 15 app (App Router, TypeScript, Tailwind)
+│   ├── src/
+│   │   ├── app/       # Routes and layout
+│   │   ├── components/
+│   │   ├── lib/
+│   │   ├── state/
+│   │   ├── styles/
+│   │   └── types/
+│   ├── package.json
+│   └── vercel.json
+├── server/            # Express API (TypeScript)
+│   ├── src/
+│   │   ├── controllers/
+│   │   ├── data/
+│   │   ├── routes/
+│   │   └── services/
+│   ├── index.ts
+│   └── package.json
+├── package.json       # Root workspaces config
+├── .gitignore
+└── README.md
+```
+
+---
 
 ## API (server)
 
-- `GET /health` → `{ ok: true }`
-- `GET /api/products` → product list
-- `GET /api/products/:id` → single product
-- `POST /api/profile` → save profile (JSON body)
-- `POST /api/chat` → `{ message, topic? }` → mock AI response + topic + citations
+Base URL: `http://localhost:8000`
 
-## Routes (frontend)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Health check → `{ "ok": true }` |
+| GET | `/api/products` | List all products |
+| GET | `/api/products/:id` | Single product by id |
+| POST | `/api/profile` | Save profile (JSON body) |
+| POST | `/api/chat` | Send message; body: `{ "message": string, "topic"?: string }` → mock AI response + topic + citations |
 
-1. `/` – Studio bento grid  
-2. `/chat` – Concierge chat (sheet open by default)  
-3. `/product` – Product schema details  
-4. `/size` – Body measurements, fit check, haptic on “Good Fit”  
-5. `/try-on` – Slide-to-Try, skeleton ~1200ms  
-6. `/personalize` – Style prefs + profile  
-7. `/recommendations` – Ranked products  
-8. `/settings` – Dark mode, reduce motion, clear profile/chat  
+---
+
+## Frontend routes
+
+| Route | Description |
+|-------|-------------|
+| `/` | Studio bento grid (Try-On, Product, Size, Comparison, Recommendations) |
+| `/chat` | Concierge chat (bottom sheet open by default) |
+| `/product` | Product details (schema, fabric, size chart, tags) |
+| `/size` | Body measurements and fit check (Good Fit → haptic) |
+| `/try-on` | Slide-to-Try panel |
+| `/personalize` | Style preferences and profile |
+| `/recommendations` | Ranked products by preferences |
+| `/settings` | Dark mode, reduce motion, clear profile/chat |
+
+---
 
 ## Stack
 
-- **Frontend**: Next.js 15 (App Router), TypeScript, Tailwind, Zustand  
-- **Backend**: Express, TypeScript, tsx watch  
+- **Frontend:** Next.js 15.5.9, React 18, TypeScript, Tailwind CSS, Zustand  
+- **Backend:** Express, TypeScript, tsx (dev), CORS enabled for localhost:3000  
+
+---
+
+## Deploy (Vercel)
+
+The app is a **monorepo**; the Next.js app lives in `frontend/`.
+
+1. Connect the repo to Vercel.
+2. In **Settings → Build and Deployment → Root Directory**, set:
+   - **`frontend`** if the repo root is this monorepo, or  
+   - **`fashion-intelligence-aggregator/frontend`** if the repo root is a parent folder.
+3. Save and redeploy.
+
+See **VERCEL.md** in this repo for more detail.
+
+---
+
+## License
+
+Private / unlicensed unless otherwise stated.
