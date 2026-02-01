@@ -54,6 +54,8 @@ export interface SerpShoppingResult {
   tag?: string;
   extensions?: string[];
   delivery?: string;
+  /** Ready-made URL to fetch seller/merchant links via Google Immersive Product API */
+  serpapi_immersive_product_api?: string;
 }
 
 export interface SerpShoppingResponse {

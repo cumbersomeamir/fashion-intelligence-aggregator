@@ -20,7 +20,10 @@ const SEARCH_COUNTRIES = [
 interface ShoppingResult {
   position: number;
   title: string;
+  product_id?: string;
   product_link?: string;
+  /** SerpApi URL to fetch merchant/seller links (direct Myntra, Amazon, etc.) */
+  serpapi_immersive_product_api?: string;
   source?: string;
   price?: string;
   extracted_price?: number;
@@ -45,6 +48,7 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchResults, setSearchResults] = useState<ShoppingResult[]>([]);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [openingProductPosition, setOpeningProductPosition] = useState<number | null>(null);
   const {
     chatMessages,
     setChatMessages,
@@ -110,6 +114,32 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
       setSearchLoading(false);
     }
   }, [searchQuery, searchLoading, searchCountry]);
+
+  const openProduct = useCallback(
+    async (r: ShoppingResult) => {
+      const fallbackUrl = r.product_link ?? "#";
+      if (!r.serpapi_immersive_product_api) {
+        window.open(fallbackUrl, "_blank");
+        return;
+      }
+      setOpeningProductPosition(r.position);
+      try {
+        const params = new URLSearchParams({
+          serpapi_url: r.serpapi_immersive_product_api,
+        });
+        const res = await fetch(`/api/shopping-product?${params.toString()}`);
+        const data = await res.json();
+        const merchantLink =
+          data.merchantLink ?? (Array.isArray(data.sellers) && data.sellers[0]?.link) ?? null;
+        window.open(merchantLink ?? fallbackUrl, "_blank");
+      } catch {
+        window.open(fallbackUrl, "_blank");
+      } finally {
+        setOpeningProductPosition(null);
+      }
+    },
+    []
+  );
 
   return (
     <div className="flex flex-col h-full min-h-[260px] sm:min-h-[280px]">
@@ -185,37 +215,42 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
             )}
             {searchResults.length > 0 && (
               <div className="grid gap-3 sm:grid-cols-2">
-                {searchResults.slice(0, 12).map((r) => (
-                  <a
-                    key={r.position}
-                    href={r.product_link ?? "#"}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex gap-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/80 p-3 hover:border-accent/50 transition-colors text-left"
-                  >
-                    <div className="shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-700">
-                      {(r.thumbnail || r.serpapi_thumbnail) && (
-                        <img
-                          src={r.thumbnail ?? r.serpapi_thumbnail ?? ""}
-                          alt=""
-                          className="w-full h-full object-cover"
-                        />
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-zinc-900 dark:text-zinc-100 line-clamp-2">{r.title}</p>
-                      {r.source && (
-                        <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5">{r.source}</p>
-                      )}
-                      <p className="text-sm font-semibold text-accent mt-1">{r.price ?? (r.extracted_price != null ? `$${r.extracted_price}` : "")}</p>
-                      {(r.rating != null || r.tag) && (
-                        <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5">
-                          {[r.rating != null && `${r.rating}★`, r.reviews != null && `${r.reviews} reviews`, r.tag].filter(Boolean).join(" · ")}
+                {searchResults.slice(0, 12).map((r) => {
+                  const opening = openingProductPosition === r.position;
+                  return (
+                    <button
+                      key={r.position}
+                      type="button"
+                      onClick={() => openProduct(r)}
+                      disabled={opening}
+                      className="flex gap-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/80 p-3 hover:border-accent/50 transition-colors text-left disabled:opacity-70"
+                    >
+                      <div className="shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-700">
+                        {(r.thumbnail || r.serpapi_thumbnail) && (
+                          <img
+                            src={r.thumbnail ?? r.serpapi_thumbnail ?? ""}
+                            alt=""
+                            className="w-full h-full object-cover"
+                          />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-medium text-zinc-900 dark:text-zinc-100 line-clamp-2">{r.title}</p>
+                        {r.source && (
+                          <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5">{r.source}</p>
+                        )}
+                        <p className="text-sm font-semibold text-accent mt-1">
+                          {opening ? "Opening store…" : r.price ?? (r.extracted_price != null ? `$${r.extracted_price}` : "")}
                         </p>
-                      )}
-                    </div>
-                  </a>
-                ))}
+                        {!opening && (r.rating != null || r.tag) && (
+                          <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+                            {[r.rating != null && `${r.rating}★`, r.reviews != null && `${r.reviews} reviews`, r.tag].filter(Boolean).join(" · ")}
+                          </p>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             )}
             {!searchLoading && searchResults.length === 0 && searchQuery.trim() && !searchError && (
