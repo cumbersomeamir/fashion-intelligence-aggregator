@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@aws-sdk/s3-request-presigner": "^3.980.0",
     "@google/genai": "^1.39.0",
     "ioredis": "^5.9.2",
     "next": "15.5.9",

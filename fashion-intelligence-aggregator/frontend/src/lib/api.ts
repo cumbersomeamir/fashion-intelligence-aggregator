@@ -24,14 +24,40 @@ export async function fetchProduct(id: string): Promise<import("@/types").Produc
   return res.json();
 }
 
+export async function getProfile(): Promise<import("@/types").Profile | null> {
+  const sessionId = getOrCreateSessionId();
+  const res = await fetch(`${API_BASE}/api/profile?sessionId=${encodeURIComponent(sessionId)}`);
+  if (!res.ok) return null;
+  const data = await res.json();
+  return (Object.keys(data).length > 0 ? data : null) as import("@/types").Profile | null;
+}
+
+/** Upload profile image to S3 and return the public URL. Uses sessionId from localStorage. */
+export async function uploadProfileImage(file: File): Promise<string> {
+  const sessionId = getOrCreateSessionId();
+  const form = new FormData();
+  form.append("file", file);
+  form.append("sessionId", sessionId);
+  const res = await fetch("/api/upload-profile-image", { method: "POST", body: form });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error ?? "Upload failed");
+  }
+  const data = (await res.json()) as { url: string };
+  return data.url;
+}
+
 export async function saveProfile(profile: import("@/types").Profile): Promise<import("@/types").Profile> {
+  const sessionId = getOrCreateSessionId();
   const res = await fetch(`${API_BASE}/api/profile`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(profile),
+    body: JSON.stringify({ ...profile, sessionId }),
   });
   if (!res.ok) throw new Error("Failed to save profile");
-  return res.json();
+  const data = await res.json();
+  const { sessionId: _s, ...saved } = data;
+  return saved as import("@/types").Profile;
 }
 
 export interface ChatResponse {

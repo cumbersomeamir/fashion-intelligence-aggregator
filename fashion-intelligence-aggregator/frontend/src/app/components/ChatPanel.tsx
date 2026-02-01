@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { TopicChips } from "@/components/TopicChips";
 import { useStore } from "@/state/store";
-import { sendChat } from "@/lib/api";
+import { sendChat, getProfile, saveProfile, uploadProfileImage } from "@/lib/api";
 import { detectTopicFromMessage } from "@/lib/topicDetection";
 import type { Topic } from "@/types";
 
@@ -49,11 +49,16 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
   const [searchResults, setSearchResults] = useState<ShoppingResult[]>([]);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [openingProductPosition, setOpeningProductPosition] = useState<number | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadImageError, setUploadImageError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const {
     chatMessages,
     setChatMessages,
     currentTopic,
     setCurrentTopic,
+    profile,
+    setProfile,
   } = useStore();
 
   const handleSend = useCallback(async () => {
@@ -141,11 +146,43 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
     []
   );
 
+  useEffect(() => {
+    if (profile == null) {
+      let cancelled = false;
+      getProfile().then((data) => {
+        if (!cancelled && data) setProfile(data);
+      });
+      return () => { cancelled = true; };
+    }
+  }, [profile, setProfile]);
+
+  const handleProfileImageChange = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      e.target.value = "";
+      if (!file) return;
+      setUploadImageError(null);
+      setUploadingImage(true);
+      try {
+        const url = await uploadProfileImage(file);
+        const current = await getProfile();
+        const next = { ...(current ?? {}), profile_image: url };
+        await saveProfile(next);
+        setProfile(next);
+      } catch (err) {
+        setUploadImageError(err instanceof Error ? err.message : "Upload failed");
+      } finally {
+        setUploadingImage(false);
+      }
+    },
+    [setProfile]
+  );
+
   return (
     <div className="flex flex-col h-full min-h-[260px] sm:min-h-[280px]">
       {/* Mode toggle + Context */}
       <div className="px-3 py-2 sm:px-4 sm:py-2.5 border-b border-zinc-200/80 dark:border-zinc-700/80 shrink-0 bg-zinc-50/50 dark:bg-zinc-800/30 space-y-2">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="text-[10px] sm:text-xs uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Mode</span>
           <div className="flex rounded-lg border border-zinc-200 dark:border-zinc-600 overflow-hidden">
             <button
@@ -163,7 +200,38 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
               Search
             </button>
           </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            className="hidden"
+            aria-hidden
+            onChange={handleProfileImageChange}
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadingImage}
+            className="flex items-center gap-1.5 min-h-[32px] px-2.5 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-xs font-medium disabled:opacity-50 transition-colors"
+            title="Upload profile image"
+          >
+            {profile?.profile_image ? (
+              <span className="w-6 h-6 rounded-full overflow-hidden shrink-0 bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center">
+                <img
+                  src={`/api/profile-image?url=${encodeURIComponent(profile.profile_image)}`}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              </span>
+            ) : (
+              <span className="w-6 h-6 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center text-zinc-500 text-[10px]" aria-hidden>📷</span>
+            )}
+            <span>{uploadingImage ? "…" : "Profile image"}</span>
+          </button>
         </div>
+        {uploadImageError && (
+          <p className="text-[10px] text-red-600 dark:text-red-400">{uploadImageError}</p>
+        )}
         {mode === "chat" && (
           <>
             <p className="text-[10px] sm:text-xs uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1.5">Context</p>
