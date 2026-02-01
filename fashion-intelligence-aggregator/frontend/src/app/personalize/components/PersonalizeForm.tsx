@@ -309,7 +309,7 @@ export function PersonalizeForm() {
               </div>
               <div>
                 <p className="text-[10px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1.5">Sleeve (optional)</p>
-                <ChipSingle options={SLEEVE_OPTIONS} value={sleevePreference} onChange={setSleevePreference} labels={{ "no preference": "No preference" }} />
+                <ChipSingle options={SLEEVE_OPTIONS} value={sleevePreference} onChange={setSleevePreference} labels={{ short: "Short", long: "Long", "no preference": "No preference" }} />
               </div>
               <div>
                 <p className="text-[10px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1.5">Length (optional)</p>
