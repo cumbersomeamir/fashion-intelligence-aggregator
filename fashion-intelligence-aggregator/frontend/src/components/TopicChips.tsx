@@ -7,18 +7,21 @@ interface TopicChipsProps {
   currentTopic: Topic | null;
   onSelect: (topic: Topic) => void;
   className?: string;
+  /** Single-row scroll, smaller chips (for bottom bar on mobile) */
+  compact?: boolean;
 }
 
-export function TopicChips({ currentTopic, onSelect, className = "" }: TopicChipsProps) {
+export function TopicChips({ currentTopic, onSelect, className = "", compact }: TopicChipsProps) {
   return (
-    <div className={`flex flex-wrap gap-2 ${className}`}>
+    <div className={`flex gap-2 ${compact ? "flex-nowrap overflow-x-auto scrollbar-hide shrink-0 min-w-0" : "flex-wrap"} ${className}`}>
       {TOPICS.map((topic) => (
         <button
           key={topic}
           type="button"
           onClick={() => onSelect(topic)}
           className={`
-            min-h-[44px] px-3 py-2.5 sm:min-h-0 sm:py-1.5 rounded-full text-sm font-body transition-colors touch-manipulation active:scale-[0.98]
+            shrink-0 rounded-full font-body transition-colors touch-manipulation active:scale-[0.98]
+            ${compact ? "min-h-[36px] px-2.5 py-1.5 text-xs" : "min-h-[44px] px-3 py-2.5 sm:min-h-0 sm:py-1.5 text-sm"}
             ${
               currentTopic === topic
                 ? "bg-accent text-white"

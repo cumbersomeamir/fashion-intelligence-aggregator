@@ -395,22 +395,22 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
         )}
       </div>
 
-      {/* Thin bottom bar: options + input (chatbox style) */}
-      <div className="shrink-0 rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-sm shadow-lg mx-2 sm:mx-0 mb-2 sm:mb-3 mb-[max(0.5rem,env(safe-area-inset-bottom))] p-2 sm:p-2.5 space-y-2">
-        {/* Options row */}
-        <div className="flex items-center gap-2 flex-wrap min-h-0">
-          <div className="flex rounded-lg border border-zinc-200 dark:border-zinc-600 overflow-hidden shrink-0 min-h-[44px] sm:min-h-0">
+      {/* Thin bottom bar: options + input (chatbox style) — solid bg + z-10 on mobile so nothing overlaps */}
+      <div className="shrink-0 relative z-10 isolate rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 sm:bg-white/95 sm:dark:bg-zinc-900/95 backdrop-blur-sm shadow-[0_-2px 12px rgba(0,0,0,0.06)] dark:shadow-[0_-2px 12px rgba(0,0,0,0.2)] mx-2 sm:mx-0 mb-2 sm:mb-3 mb-[max(0.5rem,env(safe-area-inset-bottom))] p-2 sm:p-2.5 space-y-2">
+        {/* Options row — single row on mobile, no wrap; chips scroll horizontally */}
+        <div className="flex items-center gap-2 min-h-0 overflow-x-auto overflow-y-hidden scrollbar-hide sm:flex-wrap">
+          <div className="flex rounded-lg border border-zinc-200 dark:border-zinc-600 overflow-hidden shrink-0 min-h-[38px] sm:min-h-0">
             <button
               type="button"
               onClick={() => setMode("chat")}
-              className={`px-2.5 py-1.5 sm:py-1.5 min-h-[44px] sm:min-h-0 flex items-center text-xs font-medium transition-colors touch-manipulation ${mode === "chat" ? "bg-accent text-white" : "bg-transparent text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700"}`}
+              className={`px-2.5 py-1.5 flex items-center text-xs font-medium transition-colors touch-manipulation min-h-[38px] sm:min-h-0 ${mode === "chat" ? "bg-accent text-white" : "bg-transparent text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700"}`}
             >
               Chat
             </button>
             <button
               type="button"
               onClick={() => setMode("search")}
-              className={`px-2.5 py-1.5 sm:py-1.5 min-h-[44px] sm:min-h-0 flex items-center text-xs font-medium transition-colors touch-manipulation ${mode === "search" ? "bg-accent text-white" : "bg-transparent text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700"}`}
+              className={`px-2.5 py-1.5 flex items-center text-xs font-medium transition-colors touch-manipulation min-h-[38px] sm:min-h-0 ${mode === "search" ? "bg-accent text-white" : "bg-transparent text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700"}`}
             >
               Search
             </button>
@@ -427,11 +427,11 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={uploadingImage}
-            className="flex items-center gap-1.5 min-h-[44px] sm:min-h-[32px] px-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700 text-xs font-medium disabled:opacity-50 transition-colors shrink-0 touch-manipulation"
+            className="flex items-center gap-1.5 min-h-[38px] px-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700 text-xs font-medium disabled:opacity-50 transition-colors shrink-0 touch-manipulation"
             title="Upload profile image"
           >
             {profile?.profile_image ? (
-              <span className="w-5 h-5 rounded-full overflow-hidden shrink-0 bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center">
+              <span className="w-6 h-6 rounded-full overflow-hidden shrink-0 bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center">
                 <img
                   src={`/api/profile-image?url=${encodeURIComponent(profile.profile_image)}`}
                   alt=""
@@ -439,30 +439,30 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
                 />
               </span>
             ) : (
-              <span className="w-5 h-5 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center text-zinc-500 text-[9px]" aria-hidden>📷</span>
+              <span className="w-6 h-6 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center text-zinc-500 text-[10px]" aria-hidden>📷</span>
             )}
             <span className="hidden sm:inline">{uploadingImage ? "…" : "Profile"}</span>
           </button>
           {uploadImageError && (
-            <p className="text-[10px] text-red-600 dark:text-red-400 shrink-0">{uploadImageError}</p>
+            <p className="text-[10px] text-red-600 dark:text-red-400 shrink-0 whitespace-nowrap">{uploadImageError}</p>
           )}
           {mode === "chat" && (
-            <div className="flex-1 min-w-0 overflow-x-auto scrollbar-hide">
+            <div className="flex-1 min-w-[80px] overflow-x-auto scrollbar-hide -mx-1">
               <TopicChips
                 currentTopic={currentTopic}
                 onSelect={(t) => setCurrentTopic(t)}
-                className="gap-1.5 py-0.5"
+                compact
               />
             </div>
           )}
           {mode === "search" && (
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex gap-1.5 shrink-0">
               {SEARCH_COUNTRIES.map(({ code, label }) => (
                 <button
                   key={code}
                   type="button"
                   onClick={() => setSearchCountry(code)}
-                  className={`px-2 py-1 rounded-md text-[11px] font-medium transition-colors ${searchCountry === code ? "bg-accent text-white" : "bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600"}`}
+                  className={`px-2 py-1.5 rounded-md text-[11px] font-medium transition-colors shrink-0 min-h-[38px] sm:min-h-0 flex items-center ${searchCountry === code ? "bg-accent text-white" : "bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600"}`}
                 >
                   {label}
                 </button>
