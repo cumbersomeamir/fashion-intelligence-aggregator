@@ -38,7 +38,9 @@ export async function uploadProfileImage(file: File): Promise<string> {
   const form = new FormData();
   form.append("file", file);
   form.append("sessionId", sessionId);
-  const res = await fetch("/api/upload-profile-image", { method: "POST", body: form });
+  // Use same origin so deploy (Vercel etc.) always hits the correct API route
+  const base = typeof window !== "undefined" ? window.location.origin : "";
+  const res = await fetch(`${base}/api/upload-profile-image`, { method: "POST", body: form });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err?.error ?? "Upload failed");

@@ -7,7 +7,7 @@ const accessKey = process.env.AWS_ACCESS_KEY_ID;
 const secretKey = process.env.AWS_SECRET_ACCESS_KEY;
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+const MAX_SIZE_BYTES = 4 * 1024 * 1024; // 4 MB (under Vercel serverless 4.5 MB body limit)
 
 function getExt(mime: string): string {
   const map: Record<string, string> = {
