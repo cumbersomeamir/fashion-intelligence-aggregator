@@ -66,7 +66,8 @@ export async function GET(request: NextRequest) {
 
   const cached = getCached(url);
   if (cached) {
-    return new NextResponse(cached.bytes, {
+    const body = new Uint8Array(cached.bytes);
+    return new NextResponse(body, {
       status: 200,
       headers: {
         "Content-Type": cached.contentType,
@@ -91,7 +92,7 @@ export async function GET(request: NextRequest) {
     const bytes = await streamToBuffer(body as import("stream").Readable);
     const contentType = out.ContentType ?? contentTypeForKey(key);
     setCache(url, bytes, contentType);
-    return new NextResponse(bytes, {
+    return new NextResponse(new Uint8Array(bytes), {
       status: 200,
       headers: {
         "Content-Type": contentType,
