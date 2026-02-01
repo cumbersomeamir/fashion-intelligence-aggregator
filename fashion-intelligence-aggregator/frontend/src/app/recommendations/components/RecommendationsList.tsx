@@ -31,7 +31,7 @@ export function RecommendationsList() {
 
   if (productsLoading) {
     return (
-      <div className="mx-auto max-w-6xl px-3 sm:px-4 py-4 sm:py-6 min-w-0">
+      <div className="mx-auto max-w-6xl px-3 sm:px-4 py-4 sm:py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] min-w-0 overflow-x-hidden">
         <h1 className="font-headline text-xl sm:text-2xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
           Recommendations
         </h1>
@@ -48,7 +48,7 @@ export function RecommendationsList() {
   const prefsLower = prefs.map((p) => p.toLowerCase());
 
   return (
-    <div className="mx-auto max-w-6xl px-3 sm:px-4 py-4 sm:py-6 min-w-0">
+    <div className="mx-auto max-w-6xl px-3 sm:px-4 py-4 sm:py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] min-w-0 overflow-x-hidden">
       <h1 className="font-headline text-xl sm:text-2xl font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
         Recommendations
       </h1>

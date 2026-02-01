@@ -15,6 +15,12 @@ interface AppState {
   chatOpen: boolean;
   darkMode: boolean;
   reduceMotion: boolean;
+  /** Data URL of the last try-on result image (Nano Banana Pro) */
+  tryOnResultImage: string | null;
+  /** Product used for last try-on (for showing details next to result) */
+  tryOnProduct: { title: string; source?: string; price?: string; product_link?: string; serpapi_immersive_product_api?: string; rating?: number; reviews?: number } | null;
+  /** Try-on error message, cleared on dismiss or new try-on */
+  tryOnError: string | null;
   setSelectedProductId: (id: string | null) => void;
   setSelectedComparisonIds: (ids: string[]) => void;
   setProfile: (profile: Profile | null) => void;
@@ -25,6 +31,9 @@ interface AppState {
   setChatOpen: (open: boolean) => void;
   setDarkMode: (dark: boolean) => void;
   setReduceMotion: (reduce: boolean) => void;
+  setTryOnResultImage: (image: string | null) => void;
+  setTryOnProduct: (product: AppState["tryOnProduct"]) => void;
+  setTryOnError: (error: string | null) => void;
   clearProfile: () => void;
   clearChat: () => void;
 }
@@ -40,6 +49,9 @@ export const useStore = create<AppState>((set) => ({
   chatOpen: false,
   darkMode: false,
   reduceMotion: false,
+  tryOnResultImage: null,
+  tryOnProduct: null,
+  tryOnError: null,
   setSelectedProductId: (id) => set({ selectedProductId: id }),
   setSelectedComparisonIds: (ids) => set({ selectedComparisonIds: ids }),
   setProfile: (profile) => set({ profile }),
@@ -53,6 +65,9 @@ export const useStore = create<AppState>((set) => ({
   setChatOpen: (chatOpen) => set({ chatOpen }),
   setDarkMode: (darkMode) => set({ darkMode }),
   setReduceMotion: (reduceMotion) => set({ reduceMotion }),
+  setTryOnResultImage: (tryOnResultImage) => set({ tryOnResultImage }),
+  setTryOnProduct: (tryOnProduct) => set({ tryOnProduct }),
+  setTryOnError: (tryOnError) => set({ tryOnError }),
   clearProfile: () => set({ profile: null }),
   clearChat: () => set({ chatMessages: [], currentTopic: null }),
 }));

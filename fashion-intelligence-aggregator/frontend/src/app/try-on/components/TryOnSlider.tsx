@@ -14,7 +14,7 @@ export function TryOnSlider() {
 
   if (generating) {
     return (
-      <div className="mx-auto max-w-2xl px-3 sm:px-4 py-4 sm:py-5 min-w-0">
+      <div className="mx-auto max-w-2xl px-3 sm:px-4 py-4 sm:py-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] min-w-0 overflow-x-hidden">
         <h1 className="font-headline text-xl sm:text-2xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
           Try-On
         </h1>
@@ -31,7 +31,7 @@ export function TryOnSlider() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-3 sm:px-4 py-4 sm:py-5 min-w-0">
+    <div className="mx-auto max-w-2xl px-3 sm:px-4 py-4 sm:py-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] min-w-0 overflow-x-hidden">
       <h1 className="font-headline text-xl sm:text-2xl font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
         Try-On
       </h1>

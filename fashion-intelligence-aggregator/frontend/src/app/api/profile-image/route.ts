@@ -1,6 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 min
+const CACHE_MAX = 20;
+const cache = new Map<string, { bytes: Buffer; contentType: string; at: number }>();
+
+function getCached(url: string): { bytes: Buffer; contentType: string } | null {
+  const entry = cache.get(url);
+  if (!entry || Date.now() - entry.at > CACHE_TTL_MS) {
+    if (entry) cache.delete(url);
+    return null;
+  }
+  return { bytes: entry.bytes, contentType: entry.contentType };
+}
+
+function setCache(url: string, bytes: Buffer, contentType: string) {
+  if (cache.size >= CACHE_MAX) {
+    const oldest = [...cache.entries()].sort((a, b) => a[1].at - b[1].at)[0];
+    if (oldest) cache.delete(oldest[0]);
+  }
+  cache.set(url, { bytes, contentType, at: Date.now() });
+}
 
 const bucket = process.env.AWS_S3_BUCKET;
 const region = process.env.AWS_REGION;
@@ -18,7 +38,14 @@ function keyFromUrl(url: string): string | null {
   }
 }
 
-const PRESIGN_EXPIRES_IN = 3600; // 1 hour
+/** Map key extension to Content-Type */
+function contentTypeForKey(key: string): string {
+  const lower = key.toLowerCase();
+  if (lower.endsWith(".png")) return "image/png";
+  if (lower.endsWith(".gif")) return "image/gif";
+  if (lower.endsWith(".webp")) return "image/webp";
+  return "image/jpeg";
+}
 
 export async function GET(request: NextRequest) {
   if (!bucket || !region || !accessKey || !secretKey) {
@@ -37,20 +64,50 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Invalid profile image URL" }, { status: 400 });
   }
 
+  const cached = getCached(url);
+  if (cached) {
+    return new NextResponse(cached.bytes, {
+      status: 200,
+      headers: {
+        "Content-Type": cached.contentType,
+        "Cache-Control": "private, max-age=3600",
+        "X-Profile-Image-Cache": "hit",
+      },
+    });
+  }
+
   const client = new S3Client({
     region,
     credentials: { accessKeyId: accessKey, secretAccessKey: secretKey },
   });
 
   try {
-    const signedUrl = await getSignedUrl(
-      client,
-      new GetObjectCommand({ Bucket: bucket, Key: key }),
-      { expiresIn: PRESIGN_EXPIRES_IN }
-    );
-    return NextResponse.redirect(signedUrl, 302);
+    const cmd = new GetObjectCommand({ Bucket: bucket, Key: key });
+    const out = await client.send(cmd);
+    const body = out.Body;
+    if (!body) {
+      return NextResponse.json({ error: "Empty image" }, { status: 502 });
+    }
+    const bytes = await streamToBuffer(body as import("stream").Readable);
+    const contentType = out.ContentType ?? contentTypeForKey(key);
+    setCache(url, bytes, contentType);
+    return new NextResponse(bytes, {
+      status: 200,
+      headers: {
+        "Content-Type": contentType,
+        "Cache-Control": "private, max-age=3600",
+      },
+    });
   } catch (err) {
     console.error("[profile-image]", err);
-    return NextResponse.json({ error: "Failed to generate image URL" }, { status: 502 });
+    return NextResponse.json({ error: "Failed to load image" }, { status: 502 });
   }
+}
+
+async function streamToBuffer(stream: import("stream").Readable): Promise<Buffer> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks);
 }

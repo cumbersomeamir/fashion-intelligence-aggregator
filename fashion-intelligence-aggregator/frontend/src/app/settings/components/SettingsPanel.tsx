@@ -13,7 +13,7 @@ export function SettingsPanel() {
   } = useStore();
 
   return (
-    <div className="mx-auto max-w-xl px-3 sm:px-4 py-4 sm:py-6 min-w-0">
+    <div className="mx-auto max-w-xl px-3 sm:px-4 py-4 sm:py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] min-w-0 overflow-x-hidden">
       <h1 className="font-headline text-xl sm:text-2xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
         Settings
       </h1>
@@ -26,7 +26,7 @@ export function SettingsPanel() {
               role="switch"
               aria-checked={darkMode}
               onClick={() => setDarkMode(!darkMode)}
-              className="relative w-11 h-6 rounded-full transition-colors shrink-0 touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center -m-2"
+              className="relative w-11 h-6 rounded-full transition-colors shrink-0 touch-manipulation min-h-[44px] min-w-[48px] flex items-center justify-center -m-2"
             >
               <span className={`absolute inset-0 rounded-full transition-colors ${darkMode ? "bg-accent" : "bg-zinc-200 dark:bg-zinc-700"}`} />
               <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${darkMode ? "left-6" : "left-1"}`} />
@@ -47,7 +47,7 @@ export function SettingsPanel() {
               role="switch"
               aria-checked={reduceMotion}
               onClick={() => setReduceMotion(!reduceMotion)}
-              className="relative w-11 h-6 rounded-full transition-colors shrink-0 touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center -m-2"
+              className="relative w-11 h-6 rounded-full transition-colors shrink-0 touch-manipulation min-h-[44px] min-w-[48px] flex items-center justify-center -m-2"
             >
               <span className={`absolute inset-0 rounded-full transition-colors ${reduceMotion ? "bg-accent" : "bg-zinc-200 dark:bg-zinc-700"}`} />
               <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${reduceMotion ? "left-6" : "left-1"}`} />

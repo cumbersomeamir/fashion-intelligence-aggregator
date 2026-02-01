@@ -265,7 +265,7 @@ export function PersonalizeForm() {
     (profile?.occasions?.length ?? 0) > 0;
 
   return (
-    <div className="mx-auto max-w-2xl px-3 sm:px-4 py-4 sm:py-6 min-w-0 space-y-4">
+    <div className="mx-auto max-w-2xl px-3 sm:px-4 py-4 sm:py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] min-w-0 space-y-4 overflow-x-hidden">
       <Card className="p-4 sm:p-5 shadow-md bg-white/90 dark:bg-zinc-900/90 backdrop-blur-sm">
         <h1 className="font-headline text-xl sm:text-2xl font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
           Personalize
@@ -289,7 +289,7 @@ export function PersonalizeForm() {
             title="1. Body & measurements"
             hint="Powers Size & Measurement and Good Fit (haptic). Optional: shoulder, inseam."
           >
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 gap-y-4">
               <NumInput label="Height" value={height} onChange={setHeight} unit="cm" placeholder="e.g. 170" />
               <NumInput label="Weight" value={weight} onChange={setWeight} unit="kg" placeholder="e.g. 65" />
               <NumInput label="Chest" value={chest} onChange={setChest} unit="in" placeholder="e.g. 38" />
