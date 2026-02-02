@@ -32,11 +32,13 @@ export async function getProfile(): Promise<import("@/types").Profile | null> {
   return (Object.keys(data).length > 0 ? data : null) as import("@/types").Profile | null;
 }
 
-/** Upload profile image to S3 and return the public URL. Uses sessionId from localStorage. */
+/** Upload profile image to S3 and return the public URL. Uses sessionId from localStorage. Compresses client-side to stay under Vercel body limit. */
 export async function uploadProfileImage(file: File): Promise<string> {
+  const { compressImageForUpload } = await import("@/lib/compressImage");
+  const toUpload = await compressImageForUpload(file);
   const sessionId = getOrCreateSessionId();
   const form = new FormData();
-  form.append("file", file);
+  form.append("file", toUpload);
   form.append("sessionId", sessionId);
   // Use same origin so deploy (Vercel etc.) always hits the correct API route
   const base = typeof window !== "undefined" ? window.location.origin : "";
