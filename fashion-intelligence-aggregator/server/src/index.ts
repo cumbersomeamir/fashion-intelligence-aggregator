@@ -20,6 +20,11 @@ app.use(
     origin: (origin, cb) => {
       if (!origin) return cb(null, true); // same-origin or non-browser
       if (CORS_ORIGINS.includes(origin)) return cb(null, true);
+      // Allow any Vercel deployment (production + preview) and localhost
+      if (origin.endsWith(".vercel.app") || origin.startsWith("http://localhost:") || origin.startsWith("https://localhost:")) {
+        return cb(null, true);
+      }
+      console.warn("[CORS] Rejected origin:", origin, "allowed:", CORS_ORIGINS);
       return cb(null, false);
     },
   })
