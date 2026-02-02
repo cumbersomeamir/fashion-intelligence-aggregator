@@ -252,9 +252,9 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
   );
 
   return (
-    <div className="flex flex-col h-full min-h-0">
+    <div className="flex flex-col h-full min-h-0 min-w-0 overflow-hidden">
       {/* Scrollable content */}
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3 sm:p-4 space-y-2.5">
+      <div className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden p-3 sm:p-4 space-y-2.5 overscroll-contain">
         {topSlot}
         {mode === "search" ? (
           <>
@@ -479,7 +479,7 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSend()}
               placeholder="Type a message…"
-              className="flex-1 min-w-0 min-h-[44px] sm:min-h-[38px] rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 px-3 py-2.5 sm:py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 touch-manipulation"
+              className="flex-1 min-w-0 min-h-[44px] sm:min-h-[38px] rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 px-3 py-2.5 sm:py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 touch-manipulation"
             />
             <button
               type="button"
@@ -498,7 +498,7 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               placeholder="Item name (e.g. grey sweater)"
-              className="flex-1 min-w-0 min-h-[44px] sm:min-h-[38px] rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 px-3 py-2.5 sm:py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 touch-manipulation"
+              className="flex-1 min-w-0 min-h-[44px] sm:min-h-[38px] rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 px-3 py-2.5 sm:py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 touch-manipulation"
             />
             <button
               type="button"

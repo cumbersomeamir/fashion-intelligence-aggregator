@@ -24,7 +24,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 5,
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: "cover",
 };
 
@@ -35,7 +36,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${headline.variable} ${body.variable} font-body antialiased bg-[#FCFCFC] dark:bg-[#121212] text-zinc-900 dark:text-zinc-100 min-h-screen min-h-[100dvh] overflow-x-hidden`}>
+      <body className={`${headline.variable} ${body.variable} font-body antialiased bg-[#FCFCFC] dark:bg-[#121212] text-zinc-900 dark:text-zinc-100 min-h-screen min-h-[100dvh] overflow-x-hidden touch-manipulation`}>
         <AppShell>{children}</AppShell>
       </body>
     </html>
