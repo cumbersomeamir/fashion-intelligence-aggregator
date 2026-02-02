@@ -8,9 +8,22 @@ import profileRoutes from "./routes/profile.js";
 import chatRoutes from "./routes/chat.js";
 
 const app = express();
-const PORT = 8000;
+const PORT = process.env.PORT ? Number(process.env.PORT) : 8000;
+// Comma-separated list, e.g. "https://app.vercel.app,http://localhost:3000"
+const CORS_ORIGINS = (process.env.CORS_ORIGIN ?? "http://localhost:3000")
+  .split(",")
+  .map((s) => s.trim().replace(/^["']|["']$/g, ""))
+  .filter(Boolean);
 
-app.use(cors({ origin: "http://localhost:3000" }));
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      if (!origin) return cb(null, true); // same-origin or non-browser
+      if (CORS_ORIGINS.includes(origin)) return cb(null, true);
+      return cb(null, false);
+    },
+  })
+);
 app.use(express.json());
 
 app.use("/health", healthRoutes);
