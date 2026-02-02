@@ -24,7 +24,11 @@ export async function postProfile(req: Request, res: Response): Promise<void> {
     return;
   }
   try {
-    const saved = await profileService.saveProfile(payload as profileService.ProfilePayload);
+    const profilePayload: profileService.ProfilePayload = {
+      ...payload,
+      sessionId,
+    } as profileService.ProfilePayload;
+    const saved = await profileService.saveProfile(profilePayload);
     res.json(saved);
   } catch (err) {
     console.error("[profile post]", err);
