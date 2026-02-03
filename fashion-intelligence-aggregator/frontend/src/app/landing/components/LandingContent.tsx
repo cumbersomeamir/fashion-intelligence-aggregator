@@ -333,16 +333,17 @@ export function LandingContent() {
       </section>
 
       {/* —— 6. How it works (timeline style) —— */}
-      <section className="py-20 sm:py-28 px-4 sm:px-6 relative overflow-hidden">
+      <section className="py-16 sm:py-28 px-4 sm:px-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-white to-zinc-100 dark:from-zinc-950 dark:to-zinc-900/80" />
         <motion.div {...sectionReveal} className="relative mx-auto max-w-5xl">
-          <div className="text-center mb-16">
+          <div className="text-center mb-10 sm:mb-16">
             <span className="text-accent font-semibold text-sm uppercase tracking-widest">Flow</span>
-            <h2 className="font-headline text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-white mt-2">
+            <h2 className="font-headline text-2xl sm:text-4xl font-bold text-zinc-900 dark:text-white mt-2">
               How it works
             </h2>
           </div>
-          <div className="flex flex-col sm:flex-row justify-between gap-8 sm:gap-4">
+          {/* Mobile: vertical list with minimal step badges; Desktop: horizontal row */}
+          <div className="flex flex-col sm:flex-row sm:justify-between gap-5 sm:gap-4">
             {[
               "Chat with the concierge",
               "Set your profile & style",
@@ -352,17 +353,20 @@ export function LandingContent() {
             ].map((step, i) => (
               <motion.div
                 key={step}
-                initial={{ opacity: 0, scale: 0.85 }}
-                whileInView={{ opacity: 1, scale: 1 }}
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.5 }}
-                whileHover={{ scale: 1.05 }}
-                className="flex-1 flex flex-col items-center text-center group"
+                transition={{ delay: i * 0.08, duration: 0.4 }}
+                whileHover={{ scale: 1.02 }}
+                className="flex flex-row sm:flex-col items-center sm:items-center gap-4 sm:gap-3 text-left sm:text-center group flex-1 sm:min-w-0"
               >
-                <div className="w-14 h-14 rounded-2xl bg-accent text-white font-bold flex items-center justify-center text-lg shadow-lg shadow-accent/30 group-hover:shadow-accent/50 transition-shadow">
+                <div
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm font-semibold ring-2 ring-zinc-200 dark:ring-zinc-600 bg-white dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 sm:ring-accent/50 sm:text-accent shrink-0"
+                  aria-hidden
+                >
                   {i + 1}
                 </div>
-                <p className="mt-3 text-sm font-medium text-zinc-900 dark:text-white max-w-[140px]">{step}</p>
+                <p className="text-base sm:text-sm font-medium text-zinc-800 dark:text-zinc-200 sm:max-w-[140px] leading-snug flex-1 sm:flex-initial">{step}</p>
               </motion.div>
             ))}
           </div>
