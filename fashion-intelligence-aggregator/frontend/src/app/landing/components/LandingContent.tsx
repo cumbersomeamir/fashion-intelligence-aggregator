@@ -36,7 +36,7 @@ const cardTap = { scale: 0.98 };
 // Fashion-only images (Unsplash). LandingImage shows gradient fallback on error.
 const FASHION_IMAGES: Record<string, string> = {
   hero: "1441984904996-e0b6ba687e04",           // fashion store interior
-  problem: "1558769132-cb1aea913002",            // clothing rack / retail
+  problem: "1546213290-e1b492ab3eee",            // woman in clothing area (Unsplash fashion-retail)
   solution: "1556909114-f6e7ad7d3136",           // fashion retail
   goals: "1490481651871-ab68de25d43d",           // clothing / style
   chat: "1515886657613-9f3515b0c78f",            // woman fashion / style
