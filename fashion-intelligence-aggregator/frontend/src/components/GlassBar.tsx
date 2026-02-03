@@ -29,9 +29,9 @@ export function GlassBar({ variant, onOpenChat }: GlassBarProps) {
     >
       {isTop ? (
         <div className="mx-auto max-w-6xl px-3 sm:px-4 h-14 flex items-center gap-2 sm:gap-4 font-body text-sm overflow-hidden">
-          <span className="font-headline font-semibold text-zinc-900 dark:text-zinc-100 shrink-0 text-sm sm:text-base truncate max-w-[120px] sm:max-w-none">
+          <Link href="/landing" className="font-headline font-semibold text-zinc-900 dark:text-zinc-100 shrink-0 text-sm sm:text-base truncate max-w-[120px] sm:max-w-none hover:text-accent dark:hover:text-accent transition-colors">
             Fashion Intelligence
-          </span>
+          </Link>
           <div className="flex-1 min-w-0 overflow-x-auto overflow-y-hidden -mx-3 sm:mx-0 scrollbar-hide">
             <div className="flex items-center gap-2 sm:gap-4 py-2 px-3 sm:px-0">
               {TOP_LINKS.map(({ href, label }) => (
