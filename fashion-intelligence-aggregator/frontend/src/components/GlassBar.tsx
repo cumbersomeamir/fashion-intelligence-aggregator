@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 interface GlassBarProps {
   variant: "top" | "bottom";
@@ -15,43 +16,76 @@ const TOP_LINKS = [
 ];
 
 export function GlassBar({ variant, onOpenChat }: GlassBarProps) {
+  const pathname = usePathname();
   const isTop = variant === "top";
+
   return (
     <nav
       className={`
-        fixed left-0 right-0 z-40
-        bg-white/60 dark:bg-zinc-900/60 backdrop-blur-xl
-        border-b border-zinc-200/60 dark:border-zinc-700/60
-        shadow-[0_1px_0_0_rgba(255,255,255,0.05)] dark:shadow-[0_1px_0_0_rgba(0,0,0,0.2)]
-        transition-colors duration-200
-        ${isTop ? "top-0 pt-[env(safe-area-inset-top)]" : "bottom-0 border-t border-b-0 pb-[env(safe-area-inset-bottom)]"}
+        fixed left-0 right-0 z-50
+        glass-strong
+        transition-all duration-300
+        ${isTop ? "top-0 pt-[env(safe-area-inset-top)]" : "bottom-0 border-t border-[var(--border-subtle)] pb-[env(safe-area-inset-bottom)]"}
       `}
     >
       {isTop ? (
-        <div className="mx-auto max-w-6xl px-3 sm:px-4 h-14 flex items-center gap-2 sm:gap-4 font-body text-sm overflow-hidden">
-          <Link href="/landing" className="font-headline font-semibold text-zinc-900 dark:text-zinc-100 shrink-0 text-sm sm:text-base truncate max-w-[120px] sm:max-w-none hover:text-accent dark:hover:text-accent transition-colors">
-            Fashion Intelligence
-          </Link>
-          <div className="flex-1 min-w-0 overflow-x-auto overflow-y-hidden -mx-3 sm:mx-0 scrollbar-hide">
-            <div className="flex items-center gap-2 sm:gap-4 py-2 px-3 sm:px-0">
-              {TOP_LINKS.map(({ href, label }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className="shrink-0 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center px-3 py-2 rounded-lg text-zinc-600 dark:text-zinc-400 hover:text-accent dark:hover:text-accent hover:bg-white/50 dark:hover:bg-zinc-800/50 focus:ring-2 focus:ring-accent/30 active:bg-zinc-100 dark:active:bg-zinc-800 transition-all duration-200 touch-manipulation"
-                >
-                  {label}
-                </Link>
-              ))}
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center gap-3 sm:gap-6">
+          {/* Logo */}
+          <Link href="/landing" className="group flex items-center gap-2.5 shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-gradient-accent flex items-center justify-center shadow-button group-hover:shadow-button-hover transition-shadow duration-300">
+              <span className="text-white text-sm font-bold">FI</span>
             </div>
+            <span className="hidden sm:block font-headline font-semibold text-zinc-900 dark:text-white group-hover:text-accent transition-colors duration-300">
+              Fashion Intelligence
+            </span>
+          </Link>
+
+          {/* Navigation */}
+          <div className="flex-1 min-w-0 overflow-x-auto overflow-y-hidden scrollbar-hide">
+            <div className="flex items-center gap-1 py-2">
+              {TOP_LINKS.map(({ href, label }) => {
+                const isActive = pathname === href;
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={`
+                      relative shrink-0 px-4 py-2.5 rounded-xl text-sm font-medium
+                      transition-all duration-300 touch-manipulation
+                      min-h-[44px] sm:min-h-0 flex items-center justify-center
+                      ${isActive
+                        ? "text-accent bg-accent/10 dark:bg-accent/15"
+                        : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100/80 dark:hover:bg-zinc-800/50"
+                      }
+                    `}
+                  >
+                    {label}
+                    {isActive && (
+                      <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-accent" />
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* CTA Button (desktop) */}
+          <div className="hidden sm:block shrink-0">
+            <Link
+              href="/chat"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-accent text-white text-sm font-semibold shadow-button hover:shadow-button-hover hover:-translate-y-0.5 transition-all duration-300"
+            >
+              <span>Try Now</span>
+              <span className="text-white/80">→</span>
+            </Link>
           </div>
         </div>
       ) : (
-        <div className="mx-auto max-w-6xl px-3 sm:px-4 h-14 flex items-center justify-center">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center justify-center">
           <button
             type="button"
             onClick={onOpenChat}
-            className="min-h-[44px] w-full sm:w-auto sm:min-h-0 px-6 py-3 sm:py-2.5 rounded-xl bg-accent/90 text-white font-medium hover:bg-accent hover:shadow-lg hover:shadow-accent/20 focus:ring-2 focus:ring-accent focus:ring-offset-2 active:bg-accent/80 transition-all duration-200 touch-manipulation"
+            className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-accent text-white font-semibold shadow-button hover:shadow-button-hover hover:-translate-y-0.5 transition-all duration-300 touch-manipulation"
           >
             Open Concierge Chat
           </button>

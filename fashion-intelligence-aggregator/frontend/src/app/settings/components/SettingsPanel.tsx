@@ -13,67 +13,139 @@ export function SettingsPanel() {
   } = useStore();
 
   return (
-    <div className="mx-auto max-w-xl px-3 sm:px-4 py-4 sm:py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] min-w-0 overflow-x-hidden">
-      <h1 className="font-headline text-xl sm:text-2xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-        Settings
-      </h1>
-      <div className="rounded-2xl border border-zinc-200/80 dark:border-zinc-700/80 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-xl shadow-lg overflow-hidden">
-        <div className="p-4 sm:p-5 space-y-1">
-          <label className="flex items-center justify-between gap-4 min-h-[52px] py-2 px-1 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer">
-            <span className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">Dark mode</span>
+    <div className="mx-auto max-w-xl px-4 sm:px-6 py-6 sm:py-8 pb-[max(2rem,env(safe-area-inset-bottom))] min-w-0 overflow-x-hidden">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="font-headline text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white mb-2">
+          Settings
+        </h1>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          Customize your experience
+        </p>
+      </div>
+
+      {/* Appearance Section */}
+      <div className="mb-6">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-4">
+          Appearance
+        </h2>
+        <div className="rounded-2xl border border-[var(--border-subtle)] bg-white dark:bg-zinc-900 shadow-elevation-2 overflow-hidden">
+          {/* Dark mode toggle */}
+          <label className="flex items-center justify-between gap-4 p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer border-b border-[var(--border-subtle)]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
+                <span className="text-lg">{darkMode ? "🌙" : "☀️"}</span>
+              </div>
+              <div>
+                <span className="text-sm font-semibold text-zinc-900 dark:text-white block">Dark mode</span>
+                <span className="text-xs text-zinc-500 dark:text-zinc-400">Switch to dark theme</span>
+              </div>
+            </div>
             <button
               type="button"
               role="switch"
               aria-checked={darkMode}
               onClick={() => setDarkMode(!darkMode)}
-              className="relative w-11 h-6 rounded-full transition-colors shrink-0 touch-manipulation min-h-[44px] min-w-[48px] flex items-center justify-center -m-2"
+              className={`
+                relative w-14 h-8 rounded-full transition-all duration-300 shrink-0
+                ${darkMode ? "bg-gradient-accent shadow-button" : "bg-zinc-200 dark:bg-zinc-700"}
+              `}
             >
-              <span className={`absolute inset-0 rounded-full transition-colors ${darkMode ? "bg-accent" : "bg-zinc-200 dark:bg-zinc-700"}`} />
-              <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${darkMode ? "left-6" : "left-1"}`} />
+              <span
+                className={`
+                  absolute top-1 w-6 h-6 rounded-full bg-white shadow-elevation-2
+                  transition-all duration-300 ease-out-back
+                  ${darkMode ? "left-7" : "left-1"}
+                `}
+              />
             </button>
           </label>
-          <hr className="border-0 h-px bg-zinc-200 dark:bg-zinc-700 my-1" />
-          <div className="flex items-center justify-between gap-4 min-h-[52px] py-2 px-1">
-            <span className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">Accent color</span>
-            <span className="text-sm font-medium text-zinc-500 dark:text-zinc-400 shrink-0" title="Read-only">
-              #6366F1
-            </span>
+
+          {/* Accent color */}
+          <div className="flex items-center justify-between gap-4 p-4 border-b border-[var(--border-subtle)]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-accent flex items-center justify-center">
+                <span className="text-white text-lg">🎨</span>
+              </div>
+              <div>
+                <span className="text-sm font-semibold text-zinc-900 dark:text-white block">Accent color</span>
+                <span className="text-xs text-zinc-500 dark:text-zinc-400">Brand color theme</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-lg bg-gradient-accent shadow-button" />
+              <span className="text-xs font-mono text-zinc-400">#6366F1</span>
+            </div>
           </div>
-          <hr className="border-0 h-px bg-zinc-200 dark:bg-zinc-700 my-1" />
-          <label className="flex items-center justify-between gap-4 min-h-[52px] py-2 px-1 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer">
-            <span className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">Reduce motion</span>
+
+          {/* Reduce motion toggle */}
+          <label className="flex items-center justify-between gap-4 p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
+                <span className="text-lg">✨</span>
+              </div>
+              <div>
+                <span className="text-sm font-semibold text-zinc-900 dark:text-white block">Reduce motion</span>
+                <span className="text-xs text-zinc-500 dark:text-zinc-400">Minimize animations</span>
+              </div>
+            </div>
             <button
               type="button"
               role="switch"
               aria-checked={reduceMotion}
               onClick={() => setReduceMotion(!reduceMotion)}
-              className="relative w-11 h-6 rounded-full transition-colors shrink-0 touch-manipulation min-h-[44px] min-w-[48px] flex items-center justify-center -m-2"
+              className={`
+                relative w-14 h-8 rounded-full transition-all duration-300 shrink-0
+                ${reduceMotion ? "bg-gradient-accent shadow-button" : "bg-zinc-200 dark:bg-zinc-700"}
+              `}
             >
-              <span className={`absolute inset-0 rounded-full transition-colors ${reduceMotion ? "bg-accent" : "bg-zinc-200 dark:bg-zinc-700"}`} />
-              <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${reduceMotion ? "left-6" : "left-1"}`} />
+              <span
+                className={`
+                  absolute top-1 w-6 h-6 rounded-full bg-white shadow-elevation-2
+                  transition-all duration-300 ease-out-back
+                  ${reduceMotion ? "left-7" : "left-1"}
+                `}
+              />
             </button>
           </label>
         </div>
-        <hr className="border-0 h-px bg-zinc-200 dark:bg-zinc-700" />
-        <div className="p-4 sm:p-5 space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 px-1 mb-2">
-            Data
-          </p>
-          <button
-            type="button"
-            onClick={clearProfile}
-            className="w-full min-h-[48px] rounded-xl border border-zinc-200 dark:border-zinc-700 py-3 text-sm font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:ring-2 focus:ring-accent/30 active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors touch-manipulation"
-          >
-            Clear profile
-          </button>
-          <button
-            type="button"
-            onClick={clearChat}
-            className="w-full min-h-[48px] rounded-xl border border-zinc-200 dark:border-zinc-700 py-3 text-sm font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:ring-2 focus:ring-accent/30 active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors touch-manipulation"
-          >
-            Clear chat
-          </button>
+      </div>
+
+      {/* Data Section */}
+      <div>
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-4">
+          Data & Privacy
+        </h2>
+        <div className="rounded-2xl border border-[var(--border-subtle)] bg-white dark:bg-zinc-900 shadow-elevation-2 overflow-hidden">
+          <div className="p-4 space-y-3">
+            <button
+              type="button"
+              onClick={clearProfile}
+              className="w-full min-h-[52px] rounded-xl border border-[var(--border-subtle)] py-3.5 text-sm font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 hover:border-[var(--border-default)] active:scale-[0.98] transition-all duration-200 touch-manipulation"
+            >
+              Clear profile data
+            </button>
+            <button
+              type="button"
+              onClick={clearChat}
+              className="w-full min-h-[52px] rounded-xl border border-[var(--border-subtle)] py-3.5 text-sm font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 hover:border-[var(--border-default)] active:scale-[0.98] transition-all duration-200 touch-manipulation"
+            >
+              Clear chat history
+            </button>
+          </div>
+          <div className="px-4 pb-4">
+            <p className="text-xs text-zinc-400 dark:text-zinc-500 leading-relaxed">
+              Clearing data will remove your saved preferences, measurements, and conversation history. This action cannot be undone.
+            </p>
+          </div>
         </div>
+      </div>
+
+      {/* Version info */}
+      <div className="mt-8 text-center">
+        <p className="text-xs text-zinc-400 dark:text-zinc-500">
+          Fashion Intelligence v1.0
+        </p>
       </div>
     </div>
   );
