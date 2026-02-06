@@ -30,7 +30,7 @@ const staggerContainer = {
 const cardHover = {
   scale: 1.02,
   y: -4,
-  transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] },
+  transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] as const },
 };
 
 // Fashion-only images (Unsplash)
@@ -228,9 +228,9 @@ export function LandingContent() {
             transition={{ delay: 0.3, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             className="font-headline text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-white tracking-tight mb-6"
           >
-            <span className="block">Your Personal</span>
+            <span className="block">The Universal Intelligence Layer for</span>
             <span className="text-gradient bg-gradient-to-r from-violet-400 via-fuchsia-400 to-pink-400 bg-clip-text text-transparent">
-              Fashion Concierge
+              Digital Reality.
             </span>
           </motion.h1>
 
@@ -240,7 +240,7 @@ export function LandingContent() {
             transition={{ delay: 0.5, duration: 0.6 }}
             className="text-lg sm:text-xl md:text-2xl text-zinc-300/90 max-w-3xl mx-auto leading-relaxed mb-10"
           >
-            Personalize your style, search real products, try on virtually, and get AI-powered recommendations — all in one place.
+            Bridging the $100B gap between digital intent and physical fit. From AI-powered fashion concierges to immersive 1:1 spiritual guides, we build the spatial engine that powers the next generation of commerce and culture.
           </motion.p>
 
           <motion.div
@@ -270,6 +270,78 @@ export function LandingContent() {
             <motion.div className="w-1 h-2 rounded-full bg-white/60" animate={{ y: [0, 12, 0] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }} />
           </div>
         </motion.div>
+      </section>
+
+      {/* GROUND ZERO: PROBLEM & SOLUTION CARDS */}
+      <section className="relative py-24 sm:py-32 px-4 sm:px-6 bg-[var(--bg)] overflow-hidden">
+        <div className="absolute inset-0 bg-mesh opacity-30" />
+        <div className="relative mx-auto max-w-7xl">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={staggerContainer} className="text-center mb-16 sm:mb-20">
+            <motion.div variants={fadeInUp}><SectionBadge>Ground Zero</SectionBadge></motion.div>
+            <motion.div variants={fadeInUp} className="mt-6"><SectionTitle>The Problem & Solution</SectionTitle></motion.div>
+            <motion.p variants={fadeInUp} className="mt-4 text-lg sm:text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
+              One spatial engine. Three domains.
+            </motion.p>
+          </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+            {[
+              { icon: "🛒", title: "The Retail Bottleneck", description: "Static shopping is broken. We replace guesswork with 'Fit Certainty' using a 5-parameter neural engine—Visual, Fit, Movement, Lighting, and Risk." },
+              { icon: "🌐", title: "The Immersive Future", description: "Beyond retail. Our spatial engine creates 1:1 digital twins for Hajj, Umrah, and Global Tourism—preparing users for reality before they even land." },
+              { icon: "🏗️", title: "The Precision Auditor", description: "Construction redefined. Leveraging BIM and AI-vision to reduce rework and synchronize site data in real-time." },
+            ].map((feature, i) => (
+              <FeatureCard key={feature.title} {...feature} index={i} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CONCIERGE FEATURE BREAKDOWN — Timeline / editorial list (unique layout) */}
+      <section className="relative py-24 sm:py-32 px-4 sm:px-6 bg-zinc-50 dark:bg-zinc-900/50 overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--tw-gradient-stops))] from-transparent via-violet-500/[0.02] to-transparent dark:via-violet-400/[0.03]" />
+        <div className="relative mx-auto max-w-4xl">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={staggerContainer} className="text-center mb-20 sm:mb-24">
+            <motion.div variants={fadeInUp}><SectionBadge>Concierge</SectionBadge></motion.div>
+            <motion.div variants={fadeInUp} className="mt-6">
+              <h2 className="font-headline text-3xl sm:text-4xl lg:text-5xl font-bold text-zinc-900 dark:text-white leading-[1.1] tracking-tight">
+                Your Personal Fashion Architect.
+              </h2>
+            </motion.div>
+          </motion.div>
+
+          {/* Vertical timeline: line + nodes + content */}
+          <div className="relative">
+            <div className="absolute left-[19px] sm:left-6 top-0 bottom-0 w-px bg-gradient-to-b from-accent/40 via-violet-400/30 to-transparent" />
+            {[
+              { num: "01", title: "Multi-Brand Aggregation", description: "Shop Zara, H&M, and luxury labels in a single, unified interface." },
+              { num: "02", title: "Neural Styling Assistant", description: "A personal stylist that knows your budget, your body, and your occasion." },
+              { num: "03", title: "Photorealistic VTON", description: "Don't just see the clothes; see yourself wearing them in any lighting." },
+            ].map((feature, i) => (
+              <motion.div
+                key={feature.title}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-40px" }}
+                variants={fadeInUp}
+                transition={{ delay: i * 0.12, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                className="relative flex gap-6 sm:gap-8 pb-16 last:pb-0 group"
+              >
+                <div className="flex-shrink-0 flex flex-col items-center">
+                  <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-full border-2 border-accent/50 dark:border-accent/60 bg-[var(--bg)] dark:bg-zinc-900 flex items-center justify-center font-mono text-sm font-bold text-accent group-hover:border-accent group-hover:bg-accent/10 dark:group-hover:bg-accent/20 transition-colors duration-300 z-10">
+                    {feature.num}
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0 pt-0.5 pl-0">
+                  <h3 className="font-headline font-semibold text-xl sm:text-2xl text-zinc-900 dark:text-white mb-2 group-hover:text-accent dark:group-hover:text-accent transition-colors duration-300">
+                    {feature.title}
+                  </h3>
+                  <p className="text-zinc-600 dark:text-zinc-400 text-base sm:text-lg leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* PROBLEM SECTION */}
