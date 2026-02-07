@@ -1,3 +1,9 @@
+/**
+ * Pinterest OAuth: redirects to Pinterest for authorization.
+ * In developers.pinterest.com → your app → Configure → Redirect URIs, add:
+ *   - Local:  http://localhost:3000/api/pinterest/callback
+ *   - Prod:   https://www.neuronixlabs.com/api/pinterest/callback (or your NEXTAUTH_URL + /api/pinterest/callback)
+ */
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
