@@ -138,6 +138,36 @@ See **VERCEL.md** in this repo for more detail.
 
 ---
 
+## Deploy (Azure / PM2, same host)
+
+Run backend and frontend on one instance with PM2.
+
+**1. Build both**
+
+```bash
+cd server && npm run build && cd ..
+cd frontend && npm run build && cd ..
+```
+
+**2. Env for same-host deploy**
+
+- **Backend** (`server/.env` or `server/.env.local`): `PORT`, `CORS_ORIGIN`, MongoDB, etc.  
+  - `CORS_ORIGIN` = frontend URL (e.g. `http://your-azure-ip:3000` or `https://your-domain`).
+- **Frontend** (build-time): set `NEXT_PUBLIC_API_URL` to backend URL (e.g. `http://your-azure-ip:8000` or `https://api.your-domain`) before `npm run build`.
+
+**3. Start with PM2 from repo root**
+
+```bash
+pm2 start ecosystem.config.cjs
+pm2 save
+pm2 startup   # optional: run on reboot
+```
+
+- Backend: port **8000** (or `PORT`).  
+- Frontend: port **3000**.
+
+---
+
 ## License
 
 Private / unlicensed unless otherwise stated.

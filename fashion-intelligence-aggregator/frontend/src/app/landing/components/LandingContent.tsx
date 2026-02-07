@@ -250,7 +250,7 @@ export function LandingContent() {
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
             <Link
-              href="/chat"
+              href="/login"
               className="group relative inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-white text-zinc-900 font-semibold text-lg shadow-elevation-4 hover:shadow-elevation-5 transition-all duration-300 hover:-translate-y-1"
             >
               <span>Start Exploring</span>

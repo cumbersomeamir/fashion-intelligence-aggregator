@@ -1,5 +1,10 @@
+import { ChatGuard } from "./components/ChatGuard";
 import { ChatPageContent } from "./components/ChatPageContent";
 
 export default function ChatPage() {
-  return <ChatPageContent />;
+  return (
+    <ChatGuard>
+      <ChatPageContent />
+    </ChatGuard>
+  );
 }

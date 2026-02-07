@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, IBM_Plex_Sans } from "next/font/google";
 import "@/styles/globals.css";
+import { Providers } from "./components/Providers";
 import { AppShell } from "./components/AppShell";
 
 const headline = Bricolage_Grotesque({
@@ -37,7 +38,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${headline.variable} ${body.variable} font-body antialiased bg-[#FCFCFC] dark:bg-[#121212] text-zinc-900 dark:text-zinc-100 min-h-screen min-h-[100dvh] overflow-x-hidden touch-manipulation`}>
-        <AppShell>{children}</AppShell>
+        <Providers>
+          <AppShell>{children}</AppShell>
+        </Providers>
       </body>
     </html>
   );
