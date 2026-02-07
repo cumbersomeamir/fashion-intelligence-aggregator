@@ -12,6 +12,8 @@ const userProfileSchema = new Schema(
     wardrobeItems: [{ type: String }],
     likedItems: [{ type: String }],
     pinterestConnected: { type: Boolean, default: false },
+    pinterestAccessToken: { type: String },
+    pinterestRefreshToken: { type: String },
     onboardingCompleted: { type: Boolean, default: false },
   },
   { timestamps: true }

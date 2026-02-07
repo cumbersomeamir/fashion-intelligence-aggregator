@@ -82,5 +82,8 @@ export interface UserProfile {
   wardrobeItems?: string[];
   likedItems?: string[];
   pinterestConnected?: boolean;
+  /** Server-only; never returned to client */
+  pinterestAccessToken?: string;
+  pinterestRefreshToken?: string;
   onboardingCompleted?: boolean;
 }

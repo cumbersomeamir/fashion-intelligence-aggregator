@@ -17,7 +17,15 @@ export async function GET() {
     if (!doc) {
       return NextResponse.json(null);
     }
-    const { _id, __v, createdAt, updatedAt, ...profile } = doc as Record<string, unknown>;
+    const {
+      _id,
+      __v,
+      createdAt,
+      updatedAt,
+      pinterestAccessToken,
+      pinterestRefreshToken,
+      ...profile
+    } = doc as Record<string, unknown>;
     return NextResponse.json(profile);
   } catch (err) {
     console.error("[user-profile GET]", err);
