@@ -69,3 +69,18 @@ export interface ChatMessage {
   topic?: Topic;
   citations?: string[];
 }
+
+/** User profile (profile page) — tied to Google auth userId */
+export interface UserProfile {
+  userId: string;
+  displayName?: string;
+  username?: string;
+  profilePictureUrl?: string;
+  tryOnCount?: number;
+  followersCount?: number;
+  followingCount?: number;
+  wardrobeItems?: string[];
+  likedItems?: string[];
+  pinterestConnected?: boolean;
+  onboardingCompleted?: boolean;
+}

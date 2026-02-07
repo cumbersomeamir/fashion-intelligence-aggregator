@@ -8,7 +8,7 @@ import { useStore } from "@/state/store";
 import { ChatPanel } from "./ChatPanel";
 import { ProductsProvider } from "./ProductsProvider";
 
-const AUTH_ROUTES = ["/login", "/vendor-register"];
+const AUTH_ROUTES = ["/login", "/vendor-register", "/onboarding"];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
