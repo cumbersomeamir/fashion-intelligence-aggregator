@@ -87,3 +87,25 @@ export interface UserProfile {
   pinterestRefreshToken?: string;
   onboardingCompleted?: boolean;
 }
+
+/** Pinterest board (stored in MongoDB, linked by userId) */
+export interface PinterestBoard {
+  boardId: string;
+  name?: string;
+  description?: string;
+  pinCount: number;
+  thumbnailUrl?: string;
+  lastSyncedAt?: string;
+}
+
+/** Pinterest pin (stored in MongoDB, linked by userId) */
+export interface PinterestPin {
+  pinId: string;
+  boardId: string;
+  boardName?: string;
+  imageUrl: string;
+  link?: string;
+  title?: string;
+  description?: string;
+  syncedAt?: string;
+}
