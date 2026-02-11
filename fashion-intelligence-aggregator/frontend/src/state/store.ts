@@ -21,6 +21,8 @@ interface AppState {
   tryOnProduct: { title: string; source?: string; price?: string; product_link?: string; serpapi_immersive_product_api?: string; rating?: number; reviews?: number } | null;
   /** Try-on error message, cleared on dismiss or new try-on */
   tryOnError: string | null;
+  /** Current chat session ID (MongoDB Sessions); used for persist & history */
+  currentSessionId: string | null;
   setSelectedProductId: (id: string | null) => void;
   setSelectedComparisonIds: (ids: string[]) => void;
   setProfile: (profile: Profile | null) => void;
@@ -34,6 +36,7 @@ interface AppState {
   setTryOnResultImage: (image: string | null) => void;
   setTryOnProduct: (product: AppState["tryOnProduct"]) => void;
   setTryOnError: (error: string | null) => void;
+  setCurrentSessionId: (id: string | null) => void;
   clearProfile: () => void;
   clearChat: () => void;
 }
@@ -52,6 +55,7 @@ export const useStore = create<AppState>((set) => ({
   tryOnResultImage: null,
   tryOnProduct: null,
   tryOnError: null,
+  currentSessionId: null,
   setSelectedProductId: (id) => set({ selectedProductId: id }),
   setSelectedComparisonIds: (ids) => set({ selectedComparisonIds: ids }),
   setProfile: (profile) => set({ profile }),
@@ -68,6 +72,7 @@ export const useStore = create<AppState>((set) => ({
   setTryOnResultImage: (tryOnResultImage) => set({ tryOnResultImage }),
   setTryOnProduct: (tryOnProduct) => set({ tryOnProduct }),
   setTryOnError: (tryOnError) => set({ tryOnError }),
+  setCurrentSessionId: (currentSessionId) => set({ currentSessionId }),
   clearProfile: () => set({ profile: null }),
   clearChat: () => set({ chatMessages: [], currentTopic: null }),
 }));

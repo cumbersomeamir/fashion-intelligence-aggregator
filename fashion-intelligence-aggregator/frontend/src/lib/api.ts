@@ -71,14 +71,19 @@ export interface ChatResponse {
   text?: string;
 }
 
-/** Calls Next.js /api/chat (Gemini + Redis/memory). Uses persistent sessionId from localStorage. */
-export async function sendChat(message: string, topic?: string, system?: string): Promise<ChatResponse> {
-  const sessionId = getOrCreateSessionId();
+/** Calls Next.js /api/chat (Gemini + Redis/memory). Uses sessionId when provided, else localStorage. */
+export async function sendChat(
+  message: string,
+  topic?: string,
+  system?: string,
+  sessionId?: string
+): Promise<ChatResponse> {
+  const sid = sessionId ?? getOrCreateSessionId();
   const res = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      sessionId,
+      sessionId: sid,
       message,
       system: system ?? (topic ? `You are a fashion concierge. Current topic: ${topic}. Answer concisely.` : undefined),
     }),

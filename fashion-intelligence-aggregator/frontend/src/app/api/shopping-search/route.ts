@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { connectMongo } from "@/lib/db";
+import { GlobalProductModel } from "@/lib/globalProductModel";
 
 const SERPAPI_BASE = "https://serpapi.com/search.json";
 
@@ -110,6 +112,52 @@ export async function GET(request: NextRequest) {
     }
 
     const results = data.shopping_results ?? [];
+    try {
+      await connectMongo();
+      const now = new Date();
+      for (const r of results) {
+        const filter =
+          r.product_id
+            ? { product_id: r.product_id }
+            : r.product_link
+              ? { product_link: r.product_link }
+              : null;
+        if (filter) {
+          await GlobalProductModel.findOneAndUpdate(
+            filter,
+            {
+              $set: {
+                title: r.title,
+                lastSeenAt: now,
+                product_id: r.product_id,
+                product_link: r.product_link,
+                source: r.source,
+                source_icon: r.source_icon,
+                price: r.price,
+                extracted_price: r.extracted_price,
+                old_price: r.old_price,
+                extracted_old_price: r.extracted_old_price,
+                rating: r.rating,
+                reviews: r.reviews,
+                thumbnail: r.thumbnail,
+                serpapi_thumbnail: r.serpapi_thumbnail,
+                tag: r.tag,
+                extensions: r.extensions,
+                delivery: r.delivery,
+                serpapi_immersive_product_api: r.serpapi_immersive_product_api,
+                position: r.position,
+                searchQuery: q,
+                country: countryCode,
+              },
+              $setOnInsert: { firstSeenAt: now },
+            },
+            { upsert: true, new: true }
+          );
+        }
+      }
+    } catch (dbErr) {
+      console.error("[shopping-search] Global DB upsert:", dbErr);
+    }
     return NextResponse.json({ results });
   } catch (e) {
     console.error("[shopping-search]", e);

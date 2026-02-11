@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { TopicChips } from "@/components/TopicChips";
 import { useStore } from "@/state/store";
 import { sendChat, getProfile, saveProfile, uploadProfileImage } from "@/lib/api";
@@ -50,18 +51,84 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadImageError, setUploadImageError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const searchParams = useSearchParams();
   const {
     chatMessages,
     setChatMessages,
     currentTopic,
     setCurrentTopic,
+    currentSessionId,
+    setCurrentSessionId,
     profile,
     setProfile,
     setTryOnResultImage,
     setTryOnProduct,
     tryOnError,
     setTryOnError,
+    clearChat,
   } = useStore();
+
+  const sessionIdFromUrl = searchParams.get("sessionId")?.trim() || null;
+
+  useEffect(() => {
+    let cancelled = false;
+    async function initSession() {
+      const toLoad = sessionIdFromUrl || currentSessionId;
+      const url = toLoad
+        ? `/api/sessions/current?sessionId=${encodeURIComponent(toLoad)}`
+        : "/api/sessions/current";
+      try {
+        const res = await fetch(url);
+        if (!res.ok || cancelled) return;
+        const data = (await res.json()) as {
+          sessionId: string;
+          messages?: ChatMessage[];
+          currentTopic?: string | null;
+          title?: string;
+        };
+        if (cancelled) return;
+        setCurrentSessionId(data.sessionId);
+        setChatMessages(data.messages ?? []);
+        if (data.currentTopic) setCurrentTopic(data.currentTopic as Topic);
+        else setCurrentTopic(null);
+      } catch {
+        if (!cancelled) setCurrentSessionId(crypto.randomUUID());
+      }
+    }
+    initSession();
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionIdFromUrl, setCurrentSessionId, setChatMessages, setCurrentTopic]);
+
+  useEffect(() => {
+    if (!currentSessionId || chatMessages.length === 0) return;
+    const t = setTimeout(() => {
+      fetch(`/api/sessions/${currentSessionId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: chatMessages,
+          currentTopic,
+          title: chatMessages[0]?.role === "user" ? (chatMessages[0]?.content?.slice(0, 50) ?? "New Chat") : "New Chat",
+        }),
+      }).catch(() => {});
+    }, 800);
+    return () => clearTimeout(t);
+  }, [currentSessionId, chatMessages, currentTopic]);
+
+  const handleNewChat = useCallback(async () => {
+    try {
+      const res = await fetch("/api/sessions", { method: "POST" });
+      if (!res.ok) return;
+      const data = (await res.json()) as { sessionId: string };
+      setCurrentSessionId(data.sessionId);
+      clearChat();
+    } catch {
+      setCurrentSessionId(crypto.randomUUID());
+      clearChat();
+    }
+  }, [setCurrentSessionId, clearChat]);
 
   const handleUnifiedSubmit = useCallback(async () => {
     const text = input.trim();
@@ -104,7 +171,7 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
       } else {
         const topic = detectTopicFromMessage(text);
         setCurrentTopic(topic);
-        const res = await sendChat(text, topic);
+        const res = await sendChat(text, topic, undefined, currentSessionId ?? undefined);
         setCurrentTopic(res.topic as Topic);
         setChatMessages((prev) => [
           ...prev,
@@ -129,7 +196,7 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
     } finally {
       setSending(false);
     }
-  }, [input, sending, searchCountry, setChatMessages, setCurrentTopic]);
+  }, [input, sending, searchCountry, currentSessionId, setChatMessages, setCurrentTopic]);
 
   const openProduct = useCallback(
     async (r: ShoppingResult) => {
@@ -297,6 +364,17 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
       {/* Scrollable content */}
       <div className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden p-3 sm:p-4 space-y-2.5 overscroll-contain">
         {topSlot}
+        {chatMessages.length > 0 && (
+          <div className="flex justify-end -mt-1 mb-1">
+            <button
+              type="button"
+              onClick={handleNewChat}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium text-accent hover:bg-accent/10 border border-accent/30 transition-colors"
+            >
+              New Chat
+            </button>
+          </div>
+        )}
         {tryOnPosition != null && (
           <div className="flex items-center gap-2 py-2 px-3 rounded-xl bg-accent/10 text-accent text-sm">
             <span className="inline-block w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" aria-hidden />

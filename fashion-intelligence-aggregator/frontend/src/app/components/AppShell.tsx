@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { GlassBar } from "@/components/GlassBar";
 import { BottomSheet } from "@/components/BottomSheet";
@@ -32,7 +32,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <main className={`pb-[max(1.5rem,env(safe-area-inset-bottom))] min-h-screen min-h-[100dvh] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] overflow-x-hidden ${!isAuthPage ? "pt-14" : ""}`}>{children}</main>
       {!isChatPage && !isAuthPage && (
         <BottomSheet open={chatOpen} onClose={() => setChatOpen(false)} title="Concierge Chat">
-          <ChatPanel onClose={() => setChatOpen(false)} />
+          <Suspense fallback={<div className="p-4 text-sm text-zinc-500">Loading chat…</div>}>
+            <ChatPanel onClose={() => setChatOpen(false)} />
+          </Suspense>
         </BottomSheet>
       )}
     </ProductsProvider>
