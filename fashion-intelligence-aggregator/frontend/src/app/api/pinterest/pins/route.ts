@@ -3,13 +3,17 @@ import { getServerSession } from "next-auth";
 import { connectMongo } from "@/lib/db";
 import { PinterestPinModel } from "@/lib/pinterestPinModel";
 import { authOptions } from "@/lib/authOptions";
+import { getSessionUserId } from "@/lib/sessionUserId";
 
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const userId = (session.user as { id?: string }).id ?? session.user.email;
+  const userId = getSessionUserId(session);
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   const { searchParams } = new URL(request.url);
   const boardId = searchParams.get("boardId") ?? undefined;
 

@@ -5,6 +5,7 @@ import { UserProfileModel } from "@/lib/userProfileModel";
 import { PinterestBoardModel } from "@/lib/pinterestBoardModel";
 import { PinterestPinModel } from "@/lib/pinterestPinModel";
 import { authOptions } from "@/lib/authOptions";
+import { getSessionUserId } from "@/lib/sessionUserId";
 
 const PINTEREST_BOARDS_URL = "https://api.pinterest.com/v5/boards";
 const PINTEREST_BOARD_PINS_URL = (boardId: string) =>
@@ -32,7 +33,10 @@ export async function POST() {
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const userId = (session.user as { id?: string }).id ?? session.user.email;
+  const userId = getSessionUserId(session);
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   try {
     await connectMongo();

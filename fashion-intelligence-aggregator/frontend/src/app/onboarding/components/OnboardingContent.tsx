@@ -41,6 +41,10 @@ export function OnboardingContent() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
+        if (res.status === 409) {
+          router.replace("/profile");
+          return;
+        }
         throw new Error(data.error ?? "Failed to create profile");
       }
       router.replace("/profile");

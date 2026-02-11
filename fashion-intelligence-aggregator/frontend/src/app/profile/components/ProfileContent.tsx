@@ -42,13 +42,20 @@ export function ProfileContent() {
       return;
     }
     fetch("/api/user-profile")
-      .then((res) => (res.ok ? res.json() : null))
+      .then((res) => {
+        if (!res.ok) {
+          setLoading(false);
+          return undefined;
+        }
+        return res.json();
+      })
       .then((data) => {
-        setProfile(data);
+        if (data === undefined) return;
         if (data === null) {
           router.replace("/onboarding");
           return;
         }
+        setProfile(data);
         setLoading(false);
       })
       .catch(() => setLoading(false));

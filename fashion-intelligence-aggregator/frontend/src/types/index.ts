@@ -62,12 +62,34 @@ export interface Profile {
   profile_image?: string;
 }
 
+/** Shopping result from /api/shopping-search (used in search-type assistant messages) */
+export interface ChatSearchResult {
+  position: number;
+  title: string;
+  product_id?: string;
+  product_link?: string;
+  serpapi_immersive_product_api?: string;
+  source?: string;
+  price?: string;
+  extracted_price?: number;
+  thumbnail?: string;
+  serpapi_thumbnail?: string;
+  rating?: number;
+  reviews?: number;
+  tag?: string;
+  delivery?: string;
+}
+
 export interface ChatMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
   topic?: Topic;
   citations?: string[];
+  /** When role is assistant and type is search: inline product grid */
+  type?: "chat" | "search";
+  searchQuery?: string;
+  searchResults?: ChatSearchResult[];
 }
 
 /** User profile (profile page) — tied to Google auth userId */

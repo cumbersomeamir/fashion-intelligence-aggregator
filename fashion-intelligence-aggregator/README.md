@@ -136,6 +136,10 @@ The app is a **monorepo**; the Next.js app lives in `frontend/`.
 
 See **VERCEL.md** in this repo for more detail.
 
+**Pinterest (Profile → Connect Pinterest):** Set `PINTEREST_APP_ID` and `PINTEREST_APP_SECRET` in Vercel (and in `frontend/.env.local` for local). In [developers.pinterest.com](https://developers.pinterest.com) → your app → Configure → **Redirect URIs**, add:
+- Local: `http://localhost:3000/api/pinterest/callback`
+- Production: `https://<your-domain>/api/pinterest/callback` (e.g. `https://www.neuronixlabs.com/api/pinterest/callback`).
+
 ---
 
 ## Deploy (Azure / PM2, same host)

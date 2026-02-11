@@ -3,17 +3,22 @@ import { getServerSession } from "next-auth";
 import { connectMongo } from "@/lib/db";
 import { UserProfileModel } from "@/lib/userProfileModel";
 import { authOptions } from "@/lib/authOptions";
+import { getSessionUserId } from "@/lib/sessionUserId";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
+  const userId = getSessionUserId(session);
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const userId = (session.user as { id?: string }).id ?? session.user.email;
 
   try {
     await connectMongo();
-    const doc = await UserProfileModel.findOne({ userId }).lean();
+    // Look up by email first; also try id in case profile was created with old logic
+    const id = (session!.user as { id?: string }).id;
+    const doc = await UserProfileModel.findOne(
+      id ? { $or: [{ userId }, { userId: id }] } : { userId }
+    ).lean();
     if (!doc) {
       return NextResponse.json(null);
     }
@@ -35,10 +40,10 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
+  const userId = getSessionUserId(session);
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const userId = (session.user as { id?: string }).id ?? session.user.email;
 
   let body: Record<string, unknown>;
   try {
@@ -49,7 +54,10 @@ export async function POST(request: Request) {
 
   try {
     await connectMongo();
-    const existing = await UserProfileModel.findOne({ userId }).lean();
+    const id = (session!.user as { id?: string }).id;
+    const existing = await UserProfileModel.findOne(
+      id ? { $or: [{ userId }, { userId: id }] } : { userId }
+    ).lean();
     if (existing) {
       return NextResponse.json(
         { error: "Profile already exists. Onboarding is only allowed once at signup." },
@@ -57,9 +65,9 @@ export async function POST(request: Request) {
       );
     }
 
-    const displayName = (body.displayName as string)?.trim() || session.user.name || "User";
-    const username = (body.username as string)?.trim() || session.user.email?.split("@")[0] || "user";
-    const profilePictureUrl = (body.profilePictureUrl as string)?.trim() || session.user.image || undefined;
+    const displayName = (body.displayName as string)?.trim() || session!.user!.name || "User";
+    const username = (body.username as string)?.trim() || session!.user!.email?.split("@")[0] || "user";
+    const profilePictureUrl = (body.profilePictureUrl as string)?.trim() || session!.user!.image || undefined;
 
     const doc = await UserProfileModel.create({
       userId,
