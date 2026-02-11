@@ -80,6 +80,17 @@ export interface ChatSearchResult {
   delivery?: string;
 }
 
+/** Product info for try-on result messages */
+export interface ChatTryOnProduct {
+  title: string;
+  source?: string;
+  price?: string;
+  product_link?: string;
+  serpapi_immersive_product_api?: string;
+  rating?: number;
+  reviews?: number;
+}
+
 export interface ChatMessage {
   id: string;
   role: "user" | "assistant";
@@ -87,9 +98,12 @@ export interface ChatMessage {
   topic?: Topic;
   citations?: string[];
   /** When role is assistant and type is search: inline product grid */
-  type?: "chat" | "search";
+  type?: "chat" | "search" | "try-on";
   searchQuery?: string;
   searchResults?: ChatSearchResult[];
+  /** When type is try-on: result image and product */
+  tryOnResultImage?: string;
+  tryOnProduct?: ChatTryOnProduct;
 }
 
 /** User profile (profile page) — tied to Google auth userId */

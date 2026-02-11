@@ -45,6 +45,7 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
   const [sending, setSending] = useState(false);
   const [searchCountry, setSearchCountry] = useState<string>("in");
   const [openingProductPosition, setOpeningProductPosition] = useState<number | null>(null);
+  const [openingTryOnId, setOpeningTryOnId] = useState<string | null>(null);
   const [tryOnPosition, setTryOnPosition] = useState<number | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadImageError, setUploadImageError] = useState<string | null>(null);
@@ -156,6 +157,32 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
     []
   );
 
+  const openTryOnProduct = useCallback(
+    async (msgId: string, p: { product_link?: string; serpapi_immersive_product_api?: string }) => {
+      const fallbackUrl = p.product_link ?? "#";
+      if (!p.serpapi_immersive_product_api) {
+        window.open(fallbackUrl, "_blank");
+        return;
+      }
+      setOpeningTryOnId(msgId);
+      try {
+        const params = new URLSearchParams({
+          serpapi_url: p.serpapi_immersive_product_api,
+        });
+        const res = await fetch(`/api/shopping-product?${params.toString()}`);
+        const data = await res.json();
+        const merchantLink =
+          data.merchantLink ?? (Array.isArray(data.sellers) && data.sellers[0]?.link) ?? null;
+        window.open(merchantLink ?? fallbackUrl, "_blank");
+      } catch {
+        window.open(fallbackUrl, "_blank");
+      } finally {
+        setOpeningTryOnId(null);
+      }
+    },
+    []
+  );
+
   const handleTryOn = useCallback(
     async (r: ShoppingResult) => {
       if (!profile?.profile_image) {
@@ -199,8 +226,7 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error ?? "Try-on failed");
         if (data.image) {
-          setTryOnResultImage(data.image);
-          setTryOnProduct({
+          const product = {
             title: r.title,
             source: r.source,
             price: r.price ?? (r.extracted_price != null ? `$${r.extracted_price}` : undefined),
@@ -208,7 +234,20 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
             serpapi_immersive_product_api: r.serpapi_immersive_product_api,
             rating: r.rating,
             reviews: r.reviews,
-          });
+          };
+          setChatMessages((prev) => [
+            ...prev,
+            {
+              id: crypto.randomUUID(),
+              role: "assistant",
+              content: "Here's your try-on result.",
+              type: "try-on",
+              tryOnResultImage: data.image,
+              tryOnProduct: product,
+            } as ChatMessage,
+          ]);
+          setTryOnResultImage(null);
+          setTryOnProduct(null);
         } else {
           throw new Error("No image in response");
         }
@@ -218,7 +257,7 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
         setTryOnPosition(null);
       }
     },
-    [profile?.profile_image, setTryOnResultImage, setTryOnProduct]
+    [profile?.profile_image, setChatMessages, setTryOnResultImage, setTryOnProduct]
   );
 
   useEffect(() => {
@@ -287,6 +326,55 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
             {m.role === "user" ? (
               <div className="max-w-[90%] sm:max-w-[85%] rounded-2xl px-3 sm:px-4 py-2.5 text-sm break-words bg-accent text-white shadow-sm">
                 <p className="break-words">{m.content}</p>
+              </div>
+            ) : m.type === "try-on" && m.tryOnResultImage && m.tryOnProduct ? (
+              <div className="max-w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-sm p-4 sm:p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 text-accent text-xs font-semibold">
+                    <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+                    Try-On Result
+                  </span>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-5">
+                  <div className="shrink-0">
+                    <img
+                      src={m.tryOnResultImage}
+                      alt="Try-on result"
+                      className="max-h-[280px] sm:max-h-[320px] w-auto object-contain rounded-xl border border-zinc-200 dark:border-zinc-700"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0 flex flex-col justify-center">
+                    <h3 className="font-semibold text-zinc-900 dark:text-white text-lg sm:text-xl mb-2 line-clamp-2">
+                      {m.tryOnProduct.title}
+                    </h3>
+                    {m.tryOnProduct.source && (
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">{m.tryOnProduct.source}</p>
+                    )}
+                    {m.tryOnProduct.price && (
+                      <p className="text-xl sm:text-2xl font-bold text-accent mb-3">{m.tryOnProduct.price}</p>
+                    )}
+                    {(m.tryOnProduct.rating != null || m.tryOnProduct.reviews != null) && (
+                      <div className="flex items-center gap-2 mb-4">
+                        {m.tryOnProduct.rating != null && (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-medium">
+                            ★ {m.tryOnProduct.rating}
+                          </span>
+                        )}
+                        {m.tryOnProduct.reviews != null && (
+                          <span className="text-xs text-zinc-500 dark:text-zinc-400">{m.tryOnProduct.reviews} reviews</span>
+                        )}
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => openTryOnProduct(m.id, m.tryOnProduct!)}
+                      disabled={openingTryOnId === m.id}
+                      className="self-start mt-auto px-6 py-3 rounded-xl bg-accent text-white text-sm font-medium hover:bg-accent/90 disabled:opacity-50"
+                    >
+                      {openingTryOnId === m.id ? "Opening…" : "Visit Store →"}
+                    </button>
+                  </div>
+                </div>
               </div>
             ) : m.type === "search" && m.searchResults ? (
               <div className="max-w-full space-y-2">
