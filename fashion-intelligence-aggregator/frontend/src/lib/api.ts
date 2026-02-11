@@ -26,7 +26,9 @@ export async function fetchProduct(id: string): Promise<import("@/types").Produc
 
 export async function getProfile(): Promise<import("@/types").Profile | null> {
   const sessionId = getOrCreateSessionId();
-  const res = await fetch(`${API_BASE}/api/profile?sessionId=${encodeURIComponent(sessionId)}`);
+  // Use same-origin route: returns Onboarding data when authenticated, else Express profile
+  const base = typeof window !== "undefined" ? window.location.origin : "";
+  const res = await fetch(`${base}/api/profile?sessionId=${encodeURIComponent(sessionId)}`);
   if (!res.ok) return null;
   const data = await res.json();
   return (Object.keys(data).length > 0 ? data : null) as import("@/types").Profile | null;
@@ -53,7 +55,9 @@ export async function uploadProfileImage(file: File): Promise<string> {
 
 export async function saveProfile(profile: import("@/types").Profile): Promise<import("@/types").Profile> {
   const sessionId = getOrCreateSessionId();
-  const res = await fetch(`${API_BASE}/api/profile`, {
+  // Use same-origin route: syncs to Onboarding when authenticated, always to Express
+  const base = typeof window !== "undefined" ? window.location.origin : "";
+  const res = await fetch(`${base}/api/profile`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ...profile, sessionId }),

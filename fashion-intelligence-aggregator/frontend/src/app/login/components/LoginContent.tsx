@@ -17,7 +17,7 @@ export function LoginContent() {
 
   const handleGoogleLogin = () => {
     setIsGoogleLoading(true);
-    signIn("google", { callbackUrl: "/chat" });
+    signIn("google", { callbackUrl: "/profile" });
   };
 
   return (
