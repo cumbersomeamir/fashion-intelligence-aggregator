@@ -110,29 +110,30 @@ export async function PATCH(
     const update: Record<string, unknown> = {
       lastActivityAt: new Date(),
     };
+    const setOnInsert: Record<string, unknown> = { sessionId, userId };
 
     if (body.messages !== undefined) {
       const sanitized = sanitizeMessages(body.messages);
       update.messages = fitMessagesToBudget(sanitized);
+    } else {
+      setOnInsert.messages = [];
     }
     if (body.title !== undefined) {
       update.title = body.title;
+    } else {
+      setOnInsert.title = "New Chat";
     }
     if (body.currentTopic !== undefined) {
       update.currentTopic = body.currentTopic;
+    } else {
+      setOnInsert.currentTopic = null;
     }
 
     const doc = await SessionModel.findOneAndUpdate(
       { sessionId, userId },
       {
         $set: update,
-        $setOnInsert: {
-          sessionId,
-          userId,
-          title: body.title ?? "New Chat",
-          messages: [],
-          currentTopic: null,
-        },
+        $setOnInsert: setOnInsert,
       },
       { new: true, upsert: true, runValidators: true }
     ).lean();
