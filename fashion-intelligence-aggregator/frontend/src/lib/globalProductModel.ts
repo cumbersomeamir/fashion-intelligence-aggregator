@@ -2,6 +2,7 @@ import mongoose, { Schema } from "mongoose";
 
 const globalProductSchema = new Schema(
   {
+    canonicalKey: { type: String, index: true },
     product_id: { type: String },
     product_link: { type: String },
     title: { type: String, required: true },
@@ -28,6 +29,7 @@ const globalProductSchema = new Schema(
   { timestamps: true }
 );
 
+globalProductSchema.index({ canonicalKey: 1 }, { unique: true, sparse: true, name: "canonicalKey_unique" });
 globalProductSchema.index({ product_id: 1 }, { sparse: true });
 globalProductSchema.index({ product_link: 1 }, { sparse: true });
 

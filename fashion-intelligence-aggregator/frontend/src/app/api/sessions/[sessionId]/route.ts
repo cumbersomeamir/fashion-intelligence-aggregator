@@ -6,6 +6,40 @@ import { authOptions } from "@/lib/authOptions";
 import { getSessionUserId } from "@/lib/sessionUserId";
 import type { ChatMessage } from "@/types";
 
+const MAX_SEARCH_RESULTS_PER_MESSAGE = 12;
+const SOFT_MAX_SESSION_BYTES = 12 * 1024 * 1024;
+
+function approximateBytes(value: unknown): number {
+  return Buffer.byteLength(JSON.stringify(value ?? null), "utf8");
+}
+
+function sanitizeMessages(messages: ChatMessage[]): ChatMessage[] {
+  return messages.map((message) => {
+    const next: ChatMessage = { ...message };
+    if (Array.isArray(next.searchResults) && next.searchResults.length > MAX_SEARCH_RESULTS_PER_MESSAGE) {
+      next.searchResults = next.searchResults.slice(0, MAX_SEARCH_RESULTS_PER_MESSAGE);
+    }
+    return next;
+  });
+}
+
+function fitMessagesToBudget(messages: ChatMessage[]): ChatMessage[] {
+  const next = messages.map((m) => ({ ...m }));
+  if (approximateBytes(next) <= SOFT_MAX_SESSION_BYTES) return next;
+
+  for (let i = 0; i < next.length && approximateBytes(next) > SOFT_MAX_SESSION_BYTES; i += 1) {
+    const msg = next[i];
+    if (msg.type === "try-on" && typeof msg.tryOnResultImage === "string" && msg.tryOnResultImage.length > 0) {
+      next[i] = { ...msg, tryOnResultImage: undefined };
+    }
+  }
+
+  while (next.length > 1 && approximateBytes(next) > SOFT_MAX_SESSION_BYTES) {
+    next.shift();
+  }
+  return next;
+}
+
 /** GET /api/sessions/:sessionId - Fetch one session */
 export async function GET(
   req: NextRequest,
@@ -78,7 +112,8 @@ export async function PATCH(
     };
 
     if (body.messages !== undefined) {
-      update.messages = body.messages;
+      const sanitized = sanitizeMessages(body.messages);
+      update.messages = fitMessagesToBudget(sanitized);
     }
     if (body.title !== undefined) {
       update.title = body.title;
@@ -89,13 +124,18 @@ export async function PATCH(
 
     const doc = await SessionModel.findOneAndUpdate(
       { sessionId, userId },
-      { $set: update },
-      { new: true }
+      {
+        $set: update,
+        $setOnInsert: {
+          sessionId,
+          userId,
+          title: body.title ?? "New Chat",
+          messages: [],
+          currentTopic: null,
+        },
+      },
+      { new: true, upsert: true, runValidators: true }
     ).lean();
-
-    if (!doc) {
-      return NextResponse.json({ error: "Session not found" }, { status: 404 });
-    }
 
     return NextResponse.json({
       sessionId: doc.sessionId,

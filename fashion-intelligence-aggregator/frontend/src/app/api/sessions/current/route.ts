@@ -5,6 +5,8 @@ import { SessionModel } from "@/lib/sessionModel";
 import { authOptions } from "@/lib/authOptions";
 import { getSessionUserId } from "@/lib/sessionUserId";
 
+const EMPTY_DRAFT_REUSE_WINDOW_MS = 24 * 60 * 60 * 1000;
+
 /** GET /api/sessions/current - Get or create current session for user */
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -32,6 +34,25 @@ export async function GET(req: NextRequest) {
           title: existing.title ?? "New Chat",
         });
       }
+    }
+
+    const cutoff = new Date(Date.now() - EMPTY_DRAFT_REUSE_WINDOW_MS);
+    const draft = await SessionModel.findOne({
+      userId,
+      title: "New Chat",
+      lastActivityAt: { $gte: cutoff },
+      $or: [{ messages: { $exists: false } }, { messages: { $size: 0 } }],
+    })
+      .sort({ lastActivityAt: -1 })
+      .lean();
+
+    if (draft) {
+      return NextResponse.json({
+        sessionId: draft.sessionId,
+        messages: draft.messages ?? [],
+        currentTopic: draft.currentTopic ?? null,
+        title: draft.title ?? "New Chat",
+      });
     }
 
     const sessionId = crypto.randomUUID();

@@ -14,6 +14,51 @@ const TRY_ON_PROMPT = `You are a virtual try-on assistant. You have two images:
 
 Generate a single photorealistic image showing the person from the second image wearing the garment from the first image. Keep the person's pose and identity consistent; only change the clothing to the garment from image 1. Output only the result image, no text.`;
 
+type BodyMeasurements = {
+  height?: number;
+  weight?: number;
+  chest?: number;
+  waist?: number;
+  hips?: number;
+  shoulder?: number;
+  inseam?: number;
+};
+
+function cleanBodyMeasurements(input: unknown): BodyMeasurements | undefined {
+  if (!input || typeof input !== "object") return undefined;
+  const raw = input as Record<string, unknown>;
+  const cleaned: BodyMeasurements = {};
+  if (typeof raw.height === "number" && Number.isFinite(raw.height)) cleaned.height = raw.height;
+  if (typeof raw.weight === "number" && Number.isFinite(raw.weight)) cleaned.weight = raw.weight;
+  if (typeof raw.chest === "number" && Number.isFinite(raw.chest)) cleaned.chest = raw.chest;
+  if (typeof raw.waist === "number" && Number.isFinite(raw.waist)) cleaned.waist = raw.waist;
+  if (typeof raw.hips === "number" && Number.isFinite(raw.hips)) cleaned.hips = raw.hips;
+  if (typeof raw.shoulder === "number" && Number.isFinite(raw.shoulder)) cleaned.shoulder = raw.shoulder;
+  if (typeof raw.inseam === "number" && Number.isFinite(raw.inseam)) cleaned.inseam = raw.inseam;
+  return Object.keys(cleaned).length > 0 ? cleaned : undefined;
+}
+
+function buildTryOnPrompt(bodyMeasurements?: BodyMeasurements): string {
+  if (!bodyMeasurements) return TRY_ON_PROMPT;
+  const entries = [
+    bodyMeasurements.height != null ? `height: ${bodyMeasurements.height} cm` : null,
+    bodyMeasurements.weight != null ? `weight: ${bodyMeasurements.weight} kg` : null,
+    bodyMeasurements.chest != null ? `chest: ${bodyMeasurements.chest} in` : null,
+    bodyMeasurements.waist != null ? `waist: ${bodyMeasurements.waist} in` : null,
+    bodyMeasurements.hips != null ? `hips: ${bodyMeasurements.hips} in` : null,
+    bodyMeasurements.shoulder != null ? `shoulder: ${bodyMeasurements.shoulder} in` : null,
+    bodyMeasurements.inseam != null ? `inseam: ${bodyMeasurements.inseam} in` : null,
+  ].filter(Boolean);
+  if (entries.length === 0) return TRY_ON_PROMPT;
+
+  return [
+    TRY_ON_PROMPT,
+    "Use this Body & Measurements context only for garment fit, drape, and proportions:",
+    `- ${entries.join("\n- ")}`,
+    "Do not change identity, pose, or body shape beyond natural clothing fit behavior.",
+  ].join("\n\n");
+}
+
 export async function POST(request: NextRequest) {
   if (!apiKey) {
     return NextResponse.json(
@@ -22,7 +67,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let body: { productImageUrl?: string; profileImageBase64?: string; profileImageMime?: string };
+  let body: { productImageUrl?: string; profileImageBase64?: string; profileImageMime?: string; bodyMeasurements?: BodyMeasurements };
   try {
     body = await request.json();
   } catch {
@@ -32,6 +77,7 @@ export async function POST(request: NextRequest) {
   const productImageUrl = body.productImageUrl?.trim();
   const profileImageBase64 = body.profileImageBase64?.trim();
   const profileMime = body.profileImageMime ?? "image/jpeg";
+  const bodyMeasurements = cleanBodyMeasurements(body.bodyMeasurements);
 
   if (!productImageUrl) {
     return NextResponse.json({ error: "Missing productImageUrl" }, { status: 400 });
@@ -62,7 +108,7 @@ export async function POST(request: NextRequest) {
           parts: [
             { inlineData: { mimeType: "image/jpeg", data: productBase64 } },
             { inlineData: { mimeType: profileMime, data: profileImageBase64 } },
-            { text: TRY_ON_PROMPT },
+            { text: buildTryOnPrompt(bodyMeasurements) },
           ],
         },
       ],
