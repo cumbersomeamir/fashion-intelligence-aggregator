@@ -2,12 +2,12 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { TopicChips } from "@/components/TopicChips";
 import { useStore } from "@/state/store";
 import { sendChat, getProfile, saveProfile, uploadProfileImage } from "@/lib/api";
 import { detectTopicFromMessage } from "@/lib/topicDetection";
 import type { Topic } from "@/types";
 import type { ChatMessage } from "@/types";
+import type { Profile } from "@/types";
 
 const SEARCH_COUNTRIES = [
   { code: "in", label: "India" },
@@ -41,9 +41,60 @@ interface ChatPanelProps {
   topSlot?: React.ReactNode;
 }
 
+function cleanMeasurements(profile: Profile | null): NonNullable<Profile["measurements"]> | undefined {
+  const measurements = profile?.measurements;
+  if (!measurements) return undefined;
+  const cleaned: NonNullable<Profile["measurements"]> = {};
+  if (typeof measurements.height === "number" && Number.isFinite(measurements.height)) cleaned.height = measurements.height;
+  if (typeof measurements.weight === "number" && Number.isFinite(measurements.weight)) cleaned.weight = measurements.weight;
+  if (typeof measurements.chest === "number" && Number.isFinite(measurements.chest)) cleaned.chest = measurements.chest;
+  if (typeof measurements.waist === "number" && Number.isFinite(measurements.waist)) cleaned.waist = measurements.waist;
+  if (typeof measurements.hips === "number" && Number.isFinite(measurements.hips)) cleaned.hips = measurements.hips;
+  if (typeof measurements.shoulder === "number" && Number.isFinite(measurements.shoulder)) cleaned.shoulder = measurements.shoulder;
+  if (typeof measurements.inseam === "number" && Number.isFinite(measurements.inseam)) cleaned.inseam = measurements.inseam;
+  return Object.keys(cleaned).length > 0 ? cleaned : undefined;
+}
+
+function buildPersonalizedSystemPrompt(topic: Topic, profile: Profile | null): string {
+  const details: string[] = [];
+  const measurements = cleanMeasurements(profile);
+  if (measurements) {
+    const readable = [
+      measurements.height != null ? `height ${measurements.height} cm` : null,
+      measurements.weight != null ? `weight ${measurements.weight} kg` : null,
+      measurements.chest != null ? `chest ${measurements.chest} in` : null,
+      measurements.waist != null ? `waist ${measurements.waist} in` : null,
+      measurements.hips != null ? `hips ${measurements.hips} in` : null,
+      measurements.shoulder != null ? `shoulder ${measurements.shoulder} in` : null,
+      measurements.inseam != null ? `inseam ${measurements.inseam} in` : null,
+    ].filter(Boolean);
+    if (readable.length > 0) details.push(`Body & Measurements: ${readable.join(", ")}`);
+  }
+  if (profile?.fitPreference) details.push(`Fit preference: ${profile.fitPreference}`);
+  if (profile?.sleevePreference) details.push(`Sleeve preference: ${profile.sleevePreference}`);
+  if (profile?.lengthPreference) details.push(`Length preference: ${profile.lengthPreference}`);
+  if (profile?.budgetTier) details.push(`Budget tier: ${profile.budgetTier}`);
+  if (profile?.budgetSensitivity) details.push(`Budget sensitivity: ${profile.budgetSensitivity}`);
+  if (profile?.occasions?.length) details.push(`Occasions: ${profile.occasions.join(", ")}`);
+  if (profile?.occasionFrequency) details.push(`Occasion frequency: ${profile.occasionFrequency}`);
+  if (profile?.fabricPrefs?.length) details.push(`Fabric preferences: ${profile.fabricPrefs.join(", ")}`);
+  if (profile?.fabricSensitivities?.length) details.push(`Fabric sensitivities: ${profile.fabricSensitivities.join(", ")}`);
+  if (profile?.climate) details.push(`Climate: ${profile.climate}`);
+  if (profile?.favoriteBrands?.length) details.push(`Favorite brands: ${profile.favoriteBrands.join(", ")}`);
+  if (profile?.brandsToAvoid?.length) details.push(`Brands to avoid: ${profile.brandsToAvoid.join(", ")}`);
+  if (profile?.stylePrefs?.length) details.push(`Style preferences: ${profile.stylePrefs.join(", ")}`);
+
+  return [
+    `You are a fashion concierge. Current topic: ${topic}. Answer concisely.`,
+    "Personalization is enabled. Use the user's saved profile details only when relevant and do not invent missing values.",
+    details.length > 0 ? `Saved profile details:\n- ${details.join("\n- ")}` : "Saved profile details: none available yet.",
+  ].join("\n");
+}
+
 export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [personalizeEnabled, setPersonalizeEnabled] = useState(false);
   const [searchCountry, setSearchCountry] = useState<string>("in");
   const [openingProductPosition, setOpeningProductPosition] = useState<number | null>(null);
   const [openingTryOnId, setOpeningTryOnId] = useState<string | null>(null);
@@ -112,7 +163,13 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
           currentTopic,
           title: chatMessages[0]?.role === "user" ? (chatMessages[0]?.content?.slice(0, 50) ?? "New Chat") : "New Chat",
         }),
-      }).catch(() => {});
+      })
+        .then((res) => {
+          if (!res.ok) {
+            console.error("[sessions autosave]", res.status);
+          }
+        })
+        .catch(() => {});
     }, 800);
     return () => clearTimeout(t);
   }, [currentSessionId, chatMessages, currentTopic]);
@@ -171,7 +228,8 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
       } else {
         const topic = detectTopicFromMessage(text);
         setCurrentTopic(topic);
-        const res = await sendChat(text, topic, undefined, currentSessionId ?? undefined);
+        const systemPrompt = personalizeEnabled ? buildPersonalizedSystemPrompt(topic, profile) : undefined;
+        const res = await sendChat(text, topic, systemPrompt, currentSessionId ?? undefined);
         setCurrentTopic(res.topic as Topic);
         setChatMessages((prev) => [
           ...prev,
@@ -196,7 +254,7 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
     } finally {
       setSending(false);
     }
-  }, [input, sending, searchCountry, currentSessionId, setChatMessages, setCurrentTopic]);
+  }, [input, sending, searchCountry, currentSessionId, personalizeEnabled, profile, setChatMessages, setCurrentTopic]);
 
   const openProduct = useCallback(
     async (r: ShoppingResult) => {
@@ -288,6 +346,7 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
             productImageUrl,
             profileImageBase64: base64,
             profileImageMime: mime,
+            bodyMeasurements: personalizeEnabled ? cleanMeasurements(profile) : undefined,
           }),
         });
         const data = await res.json();
@@ -324,7 +383,7 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
         setTryOnPosition(null);
       }
     },
-    [profile?.profile_image, setChatMessages, setTryOnResultImage, setTryOnProduct]
+    [profile, personalizeEnabled, setChatMessages, setTryOnResultImage, setTryOnProduct]
   );
 
   useEffect(() => {
@@ -587,14 +646,26 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
           {uploadImageError && (
             <p className="text-[10px] text-red-600 dark:text-red-400 shrink-0 whitespace-nowrap">{uploadImageError}</p>
           )}
-          <div className="flex-1 min-w-[80px] overflow-x-auto scrollbar-hide -mx-1">
-            <TopicChips
-              currentTopic={currentTopic}
-              onSelect={(t) => setCurrentTopic(t)}
-              compact
-            />
-          </div>
+          <div className="flex-1 min-w-[80px]" />
           <div className="flex gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => setPersonalizeEnabled((prev) => !prev)}
+              role="switch"
+              aria-checked={personalizeEnabled}
+              aria-label="Personalize"
+              className="inline-flex items-center gap-2 px-2 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-600 min-h-[38px] sm:min-h-0"
+            >
+              <span className="text-[11px] font-medium">Personalize</span>
+              <span
+                className={`relative inline-flex h-5 w-9 rounded-full transition-colors ${personalizeEnabled ? "bg-accent" : "bg-zinc-300 dark:bg-zinc-500"}`}
+                aria-hidden
+              >
+                <span
+                  className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${personalizeEnabled ? "translate-x-4.5" : "translate-x-0.5"}`}
+                />
+              </span>
+            </button>
             {SEARCH_COUNTRIES.map(({ code, label }) => (
               <button
                 key={code}
