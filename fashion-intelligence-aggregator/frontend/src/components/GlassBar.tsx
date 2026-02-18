@@ -10,6 +10,7 @@ interface GlassBarProps {
 
 const TOP_LINKS = [
   { href: "/chat", label: "Chat" },
+  { href: "/reels", label: "Reels" },
   { href: "/history", label: "History" },
   { href: "/profile", label: "Profile" },
   { href: "/personalize", label: "Personalize" },

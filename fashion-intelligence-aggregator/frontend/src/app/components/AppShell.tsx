@@ -14,7 +14,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { chatOpen, setChatOpen, darkMode, reduceMotion } = useStore();
   const isChatPage = pathname === "/chat";
+  const isReelsPage = pathname === "/reels";
   const isAuthPage = AUTH_ROUTES.includes(pathname);
+  const showTopBar = !isAuthPage && !isReelsPage;
+  const mainPaddingBottom = isReelsPage ? "" : "pb-[max(1.5rem,env(safe-area-inset-bottom))]";
 
   useEffect(() => {
     if (darkMode) document.documentElement.classList.add("dark");
@@ -28,9 +31,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <ProductsProvider>
-      {!isAuthPage && <GlassBar variant="top" />}
-      <main className={`pb-[max(1.5rem,env(safe-area-inset-bottom))] min-h-screen min-h-[100dvh] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] overflow-x-hidden ${!isAuthPage ? "pt-14" : ""}`}>{children}</main>
-      {!isChatPage && !isAuthPage && (
+      {showTopBar && <GlassBar variant="top" />}
+      <main className={`${mainPaddingBottom} min-h-screen min-h-[100dvh] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] overflow-x-hidden ${showTopBar ? "pt-14" : ""}`}>{children}</main>
+      {!isChatPage && !isAuthPage && !isReelsPage && (
         <BottomSheet open={chatOpen} onClose={() => setChatOpen(false)} title="Concierge Chat">
           <Suspense fallback={<div className="p-4 text-sm text-zinc-500">Loading chat…</div>}>
             <ChatPanel onClose={() => setChatOpen(false)} />
