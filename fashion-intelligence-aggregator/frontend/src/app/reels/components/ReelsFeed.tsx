@@ -28,7 +28,7 @@ interface NavigatorWithConnection extends Navigator {
   };
 }
 
-const REELS: ReelItem[] = [
+const DEFAULT_REELS: ReelItem[] = [
   {
     id: "reel-1",
     creator: "@urban.tailor",
@@ -94,6 +94,26 @@ const NETWORK_LABEL: Record<NetworkTier, string> = {
 function buildImageUrl(baseImageUrl: string, tier: NetworkTier): string {
   const { width, quality } = IMAGE_QUALITY[tier];
   return `${baseImageUrl}?auto=format&fit=crop&crop=faces&w=${width}&q=${quality}`;
+}
+
+function isPrivateReelS3Url(url: string): boolean {
+  return /^https?:\/\/[^/]+\.s3\.[^/]+\.amazonaws\.com\/reels-images\//i.test(url);
+}
+
+function buildReelDisplayUrl(baseImageUrl: string, tier: NetworkTier): string {
+  if (isPrivateReelS3Url(baseImageUrl)) {
+    return `/api/reels/image?url=${encodeURIComponent(baseImageUrl)}`;
+  }
+  return buildImageUrl(baseImageUrl, tier);
+}
+
+function buildReelApiSourceUrl(baseImageUrl: string, tier: NetworkTier): string {
+  if (!isPrivateReelS3Url(baseImageUrl)) {
+    return buildImageUrl(baseImageUrl, tier);
+  }
+  const path = `/api/reels/image?url=${encodeURIComponent(baseImageUrl)}`;
+  if (typeof window === "undefined") return path;
+  return `${window.location.origin}${path}`;
 }
 
 async function readResponseError(res: Response, fallback: string): Promise<string> {
@@ -192,6 +212,7 @@ export function ReelsFeed() {
   const rafRef = useRef<number | null>(null);
   const { setCurrentSessionId, setCurrentTopic, setChatMessages } = useStore();
 
+  const [reels, setReels] = useState<ReelItem[]>(DEFAULT_REELS);
   const [activeIndex, setActiveIndex] = useState(0);
   const [likedMap, setLikedMap] = useState<Record<string, boolean>>({});
   const [savedMap, setSavedMap] = useState<Record<string, boolean>>({});
@@ -199,16 +220,35 @@ export function ReelsFeed() {
   const [toast, setToast] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const activeReel = REELS[activeIndex] ?? REELS[0];
+  const activeReel = reels[activeIndex] ?? reels[0];
 
   useEffect(() => {
-    const preloadIndexes = [activeIndex, activeIndex + 1].filter((i) => i >= 0 && i < REELS.length);
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/reels/items");
+        if (!res.ok || cancelled) return;
+        const data = (await res.json()) as { reels?: ReelItem[] };
+        const list = Array.isArray(data.reels) ? data.reels : [];
+        if (!cancelled && list.length > 0) {
+          setReels(list);
+          setActiveIndex(0);
+        }
+      } catch {}
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const preloadIndexes = [activeIndex, activeIndex + 1].filter((i) => i >= 0 && i < reels.length);
     preloadIndexes.forEach((idx) => {
-      const reel = REELS[idx];
+      const reel = reels[idx];
       const img = new Image();
-      img.src = buildImageUrl(reel.baseImageUrl, networkTier);
+      img.src = buildReelDisplayUrl(reel.baseImageUrl, networkTier);
     });
-  }, [activeIndex, networkTier]);
+  }, [activeIndex, networkTier, reels]);
 
   useEffect(() => {
     if (!toast) return;
@@ -249,10 +289,10 @@ export function ReelsFeed() {
       const node = feedRef.current;
       if (!node) return;
       const next = Math.round(node.scrollTop / Math.max(node.clientHeight, 1));
-      const safeNext = Math.max(0, Math.min(next, REELS.length - 1));
+      const safeNext = Math.max(0, Math.min(next, reels.length - 1));
       setActiveIndex((prev) => (prev === safeNext ? prev : safeNext));
     });
-  }, []);
+  }, [reels.length]);
 
   const toggleLike = useCallback((reelId: string) => {
     setLikedMap((prev) => ({ ...prev, [reelId]: !prev[reelId] }));
@@ -269,8 +309,8 @@ export function ReelsFeed() {
       source: reel.brand,
       price: reel.priceHint,
       product_link: `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(reel.title)}`,
-      thumbnail: buildImageUrl(reel.baseImageUrl, networkTier),
-      serpapi_thumbnail: buildImageUrl(reel.baseImageUrl, networkTier),
+      thumbnail: buildReelDisplayUrl(reel.baseImageUrl, networkTier),
+      serpapi_thumbnail: buildReelDisplayUrl(reel.baseImageUrl, networkTier),
     }),
     [networkTier]
   );
@@ -386,7 +426,7 @@ export function ReelsFeed() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            productImageUrl: buildImageUrl(reel.baseImageUrl, "high"),
+            productImageUrl: buildReelApiSourceUrl(reel.baseImageUrl, "high"),
             profileImageBase64,
             profileImageMime: profileMime,
           }),
@@ -487,7 +527,7 @@ export function ReelsFeed() {
         const summaryRes = await fetch("/api/reels/attire-summary", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ imageUrl: buildImageUrl(reel.baseImageUrl, "high") }),
+          body: JSON.stringify({ imageUrl: buildReelApiSourceUrl(reel.baseImageUrl, "high") }),
         });
         if (!summaryRes.ok) {
           throw new Error(await readResponseError(summaryRes, "Failed to analyze outfit."));
@@ -604,10 +644,10 @@ export function ReelsFeed() {
           onScroll={handleFeedScroll}
           className="h-full overflow-y-auto snap-y snap-mandatory overscroll-y-contain scrollbar-hide"
         >
-        {REELS.map((reel, index) => {
+        {reels.map((reel, index) => {
           const isActive = index === activeIndex;
           const shouldRenderImage = Math.abs(index - activeIndex) <= 1;
-          const imageSrc = buildImageUrl(reel.baseImageUrl, networkTier);
+          const imageSrc = buildReelDisplayUrl(reel.baseImageUrl, networkTier);
           const isLiked = Boolean(likedMap[reel.id]);
           const isSaved = Boolean(savedMap[reel.id]);
           const busy = busyMap[reel.id] ?? null;
