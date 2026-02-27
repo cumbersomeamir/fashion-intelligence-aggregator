@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { connectMongo } from "@/lib/db";
 import { OnboardingModel } from "@/lib/onboardingModel";
+import { ProfileAssetModel } from "@/lib/profileAssetModel";
 import { authOptions } from "@/lib/authOptions";
 import { getSessionUserId } from "@/lib/sessionUserId";
 
@@ -61,6 +62,8 @@ export async function POST(request: NextRequest) {
 
   const profileData = { ...body };
   delete profileData.sessionId;
+  const profileImage =
+    typeof profileData.profile_image === "string" ? profileData.profile_image.trim() : "";
 
   // Authenticated: save to Onboarding (upsert)
   if (userId) {
@@ -82,6 +85,30 @@ export async function POST(request: NextRequest) {
       );
     } catch (err) {
       console.error("[profile POST onboarding]", err);
+    }
+  }
+
+  if (profileImage) {
+    try {
+      await connectMongo();
+      const filter = userId
+        ? { userId, imageUrl: profileImage }
+        : { sessionId, imageUrl: profileImage };
+      await ProfileAssetModel.findOneAndUpdate(
+        filter,
+        {
+          $set: {
+            userId: userId ?? undefined,
+            sessionId,
+            imageUrl: profileImage,
+            source: "chat-profile-upload",
+          },
+          $setOnInsert: { assetId: crypto.randomUUID() },
+        },
+        { upsert: true }
+      );
+    } catch (err) {
+      console.error("[profile POST assets]", err);
     }
   }
 

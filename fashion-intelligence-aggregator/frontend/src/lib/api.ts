@@ -68,6 +68,27 @@ export async function saveProfile(profile: import("@/types").Profile): Promise<i
   return saved as import("@/types").Profile;
 }
 
+export interface SavedProfileAsset {
+  id: string;
+  url: string;
+  createdAt: string;
+}
+
+export async function getSavedProfileAssets(): Promise<SavedProfileAsset[]> {
+  const sessionId = getOrCreateSessionId();
+  const base = typeof window !== "undefined" ? window.location.origin : "";
+  const res = await fetch(
+    `${base}/api/profile-assets?sessionId=${encodeURIComponent(sessionId)}`,
+    { cache: "no-store" }
+  );
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error ?? "Failed to fetch saved assets");
+  }
+  const data = (await res.json()) as { assets?: SavedProfileAsset[] };
+  return Array.isArray(data.assets) ? data.assets : [];
+}
+
 export interface ChatResponse {
   message: string;
   topic: string;
@@ -89,7 +110,7 @@ export async function sendChat(
     body: JSON.stringify({
       sessionId: sid,
       message,
-      system: system ?? (topic ? `You are a fashion concierge. Current topic: ${topic}. Answer concisely.` : undefined),
+      system: system ?? (topic ? `You are a fashion concierge. Current topic: ${topic}. Answer concisely. Keep your responses super concise.` : undefined),
     }),
   });
   if (!res.ok) {

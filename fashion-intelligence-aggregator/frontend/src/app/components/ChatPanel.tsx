@@ -1,13 +1,16 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { useStore } from "@/state/store";
-import { sendChat, getProfile, saveProfile, uploadProfileImage } from "@/lib/api";
+import { sendChat, getProfile, saveProfile, uploadProfileImage, getSavedProfileAssets } from "@/lib/api";
 import { detectTopicFromMessage } from "@/lib/topicDetection";
+import { AssetViewerModal } from "@/components/AssetViewerModal";
+import { ChatRichText } from "@/components/ChatRichText";
 import type { Topic } from "@/types";
 import type { ChatMessage } from "@/types";
 import type { Profile } from "@/types";
+import type { SavedProfileAsset } from "@/lib/api";
 
 const SEARCH_COUNTRIES = [
   { code: "in", label: "India" },
@@ -85,7 +88,7 @@ function buildPersonalizedSystemPrompt(topic: Topic, profile: Profile | null): s
   if (profile?.stylePrefs?.length) details.push(`Style preferences: ${profile.stylePrefs.join(", ")}`);
 
   return [
-    `You are a fashion concierge. Current topic: ${topic}. Answer concisely.`,
+    `You are a fashion concierge. Current topic: ${topic}. Answer concisely. Keep your responses super concise.`,
     "Personalization is enabled. Use the user's saved profile details only when relevant and do not invent missing values.",
     details.length > 0 ? `Saved profile details:\n- ${details.join("\n- ")}` : "Saved profile details: none available yet.",
   ].join("\n");
@@ -101,6 +104,12 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
   const [tryOnPosition, setTryOnPosition] = useState<number | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadImageError, setUploadImageError] = useState<string | null>(null);
+  const [savedAssetsOpen, setSavedAssetsOpen] = useState(false);
+  const [savedAssetsLoading, setSavedAssetsLoading] = useState(false);
+  const [savedAssetsError, setSavedAssetsError] = useState<string | null>(null);
+  const [savedAssets, setSavedAssets] = useState<SavedProfileAsset[]>([]);
+  const [applyingSavedAssetId, setApplyingSavedAssetId] = useState<string | null>(null);
+  const [tryOnViewerIndex, setTryOnViewerIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const searchParams = useSearchParams();
   const {
@@ -396,6 +405,52 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
     }
   }, [profile, setProfile]);
 
+  const loadSavedAssets = useCallback(async () => {
+    setSavedAssetsLoading(true);
+    setSavedAssetsError(null);
+    try {
+      const assets = await getSavedProfileAssets();
+      setSavedAssets(assets);
+    } catch (err) {
+      setSavedAssetsError(err instanceof Error ? err.message : "Failed to load saved assets");
+    } finally {
+      setSavedAssetsLoading(false);
+    }
+  }, []);
+
+  const openSavedAssets = useCallback(() => {
+    setSavedAssetsOpen(true);
+    void loadSavedAssets();
+  }, [loadSavedAssets]);
+
+  const applySavedAsset = useCallback(
+    async (asset: SavedProfileAsset) => {
+      setApplyingSavedAssetId(asset.id);
+      setUploadImageError(null);
+      try {
+        const current = await getProfile();
+        const next = { ...(current ?? {}), profile_image: asset.url };
+        await saveProfile(next);
+        setProfile(next);
+        setSavedAssetsOpen(false);
+      } catch (err) {
+        setUploadImageError(err instanceof Error ? err.message : "Failed to apply saved image");
+      } finally {
+        setApplyingSavedAssetId(null);
+      }
+    },
+    [setProfile]
+  );
+
+  useEffect(() => {
+    if (!savedAssetsOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSavedAssetsOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [savedAssetsOpen]);
+
   const handleProfileImageChange = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
@@ -409,13 +464,39 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
         const next = { ...(current ?? {}), profile_image: url };
         await saveProfile(next);
         setProfile(next);
+        void loadSavedAssets();
       } catch (err) {
         setUploadImageError(err instanceof Error ? err.message : "Upload failed");
       } finally {
         setUploadingImage(false);
       }
     },
-    [setProfile]
+    [setProfile, loadSavedAssets]
+  );
+
+  const tryOnViewerItems = useMemo(
+    () =>
+      chatMessages
+        .filter(
+          (m): m is ChatMessage & { tryOnResultImage: string } =>
+            m.type === "try-on" && typeof m.tryOnResultImage === "string" && m.tryOnResultImage.trim().length > 0
+        )
+        .map((m, idx) => ({
+          messageId: m.id,
+          url: m.tryOnResultImage,
+          title: m.tryOnProduct?.title || "Try-On Result",
+          subtitle: [m.tryOnProduct?.source, m.tryOnProduct?.price].filter(Boolean).join(" · "),
+          downloadName: `try-on-${idx + 1}.png`,
+        })),
+    [chatMessages]
+  );
+
+  const openTryOnViewer = useCallback(
+    (messageId: string) => {
+      const index = tryOnViewerItems.findIndex((item) => item.messageId === messageId);
+      if (index >= 0) setTryOnViewerIndex(index);
+    },
+    [tryOnViewerItems]
   );
 
   return (
@@ -461,8 +542,8 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
               </div>
             )}
             {m.role === "user" ? (
-              <div className="max-w-[90%] sm:max-w-[85%] rounded-2xl px-3 sm:px-4 py-2.5 text-sm break-words bg-accent text-white shadow-sm">
-                <p className="break-words">{m.content}</p>
+              <div className="max-w-[90%] sm:max-w-[85%] rounded-2xl px-3 sm:px-4 py-2.5 break-words bg-gradient-to-br from-accent to-accent-dark text-white shadow-[0_10px_24px_rgba(79,70,229,0.38)] border border-accent/70">
+                <ChatRichText content={m.content} variant="user" />
               </div>
             ) : m.type === "try-on" && m.tryOnResultImage && m.tryOnProduct ? (
               <div className="max-w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-sm p-4 sm:p-5">
@@ -474,11 +555,17 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
                 </div>
                 <div className="flex flex-col sm:flex-row gap-5">
                   <div className="shrink-0">
-                    <img
-                      src={m.tryOnResultImage}
-                      alt="Try-on result"
-                      className="max-h-[280px] sm:max-h-[320px] w-auto object-contain rounded-xl border border-zinc-200 dark:border-zinc-700"
-                    />
+                    <button
+                      type="button"
+                      onClick={() => openTryOnViewer(m.id)}
+                      className="block rounded-xl focus:outline-none focus:ring-2 focus:ring-accent/60"
+                    >
+                      <img
+                        src={m.tryOnResultImage}
+                        alt="Try-on result"
+                        className="max-h-[280px] sm:max-h-[320px] w-auto object-contain rounded-xl border border-zinc-200 dark:border-zinc-700"
+                      />
+                    </button>
                   </div>
                   <div className="flex-1 min-w-0 flex flex-col justify-center">
                     <h3 className="font-semibold text-zinc-900 dark:text-white text-lg sm:text-xl mb-2 line-clamp-2">
@@ -517,7 +604,7 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
               <div className="max-w-full space-y-2">
                 <div className="rounded-2xl px-3 sm:px-4 py-2.5 text-sm bg-zinc-100 dark:bg-zinc-800/90 text-zinc-900 dark:text-zinc-100 border border-zinc-200/60 dark:border-zinc-700/60">
                   <p className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 mb-1">Concierge</p>
-                  <p className="break-words">{m.content}</p>
+                  <ChatRichText content={m.content} variant="assistant" />
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {m.searchResults.slice(0, 12).map((r) => {
@@ -582,7 +669,7 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
                 {m.role === "assistant" && (
                   <p className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 mb-1">Concierge</p>
                 )}
-                <p className="break-words">{m.content}</p>
+                <ChatRichText content={m.content} variant="assistant" />
                 {m.citations && m.citations.length > 0 && (
                   <div className="mt-2.5 pt-2 border-t border-zinc-200/60 dark:border-zinc-600/60">
                     <p className="text-[10px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1.5">References</p>
@@ -643,6 +730,14 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
             )}
             <span className="hidden sm:inline">{uploadingImage ? "…" : "Profile"}</span>
           </button>
+          <button
+            type="button"
+            onClick={openSavedAssets}
+            className="flex items-center gap-1.5 min-h-[38px] px-2.5 rounded-lg border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 text-xs font-medium transition-colors shrink-0 touch-manipulation"
+            title="Open saved profile assets"
+          >
+            Saved Assets
+          </button>
           {uploadImageError && (
             <p className="text-[10px] text-red-600 dark:text-red-400 shrink-0 whitespace-nowrap">{uploadImageError}</p>
           )}
@@ -701,6 +796,88 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
           <p className="text-[11px] text-red-600 dark:text-red-400 px-1 pt-0.5">{tryOnError}</p>
         )}
       </div>
+
+      <AssetViewerModal
+        isOpen={tryOnViewerIndex != null}
+        assets={tryOnViewerItems.map(({ messageId: _id, ...item }) => item)}
+        initialIndex={tryOnViewerIndex ?? 0}
+        onClose={() => setTryOnViewerIndex(null)}
+      />
+
+      {savedAssetsOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <button
+            type="button"
+            aria-label="Close saved assets"
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setSavedAssetsOpen(false)}
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Saved Assets"
+            className="relative z-10 w-full max-w-2xl max-h-[80vh] overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-2xl"
+          >
+            <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-200 dark:border-zinc-700">
+              <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Saved Assets</h3>
+              <button
+                type="button"
+                className="px-2 py-1 rounded-lg text-xs text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                onClick={() => setSavedAssetsOpen(false)}
+              >
+                Close
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto max-h-[calc(80vh-56px)]">
+              {savedAssetsLoading ? (
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading saved assets…</p>
+              ) : savedAssetsError ? (
+                <p className="text-sm text-red-600 dark:text-red-400">{savedAssetsError}</p>
+              ) : savedAssets.length === 0 ? (
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  No saved profile images yet. Upload one from the chat toolbar.
+                </p>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {savedAssets.map((asset) => {
+                    const isCurrent = profile?.profile_image === asset.url;
+                    const applying = applyingSavedAssetId === asset.id;
+                    return (
+                      <button
+                        key={asset.id}
+                        type="button"
+                        onClick={() => applySavedAsset(asset)}
+                        disabled={applying}
+                        className={`text-left rounded-xl border overflow-hidden transition-colors ${
+                          isCurrent
+                            ? "border-accent ring-1 ring-accent/40"
+                            : "border-zinc-200 dark:border-zinc-700 hover:border-accent/60"
+                        } ${applying ? "opacity-60" : ""}`}
+                      >
+                        <div className="aspect-square bg-zinc-100 dark:bg-zinc-800">
+                          <img
+                            src={`/api/profile-image?url=${encodeURIComponent(asset.url)}`}
+                            alt="Saved profile asset"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="px-2.5 py-2">
+                          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">
+                            {new Date(asset.createdAt).toLocaleString()}
+                          </p>
+                          <p className="text-xs font-medium text-zinc-900 dark:text-zinc-100 mt-0.5">
+                            {isCurrent ? "Current image" : applying ? "Applying…" : "Use this image"}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
