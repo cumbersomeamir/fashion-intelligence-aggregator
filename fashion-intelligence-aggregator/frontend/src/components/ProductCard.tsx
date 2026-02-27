@@ -11,10 +11,10 @@ export function ProductCard({ product, compact }: ProductCardProps) {
   return (
     <div
       className={`
-        group relative rounded-2xl border border-[var(--border-subtle)] overflow-hidden
-        bg-white dark:bg-zinc-900 min-w-0
+        group relative rounded-2xl overflow-hidden
+        glass-card min-w-0
         transition-all duration-400 ease-out-expo
-        hover:border-[var(--border-default)] hover:shadow-elevation-3 hover:-translate-y-1
+        hover:shadow-elevation-3 hover:-translate-y-1
         ${compact ? "p-3" : "p-4 sm:p-5"}
       `}
     >

@@ -72,10 +72,10 @@ export function RecommendationsList() {
       {/* Results container */}
       <div
         className={`
-          rounded-3xl border p-5 sm:p-6 transition-all duration-300
+          rounded-3xl p-5 sm:p-6 transition-all duration-300
           ${highlight
-            ? "border-accent/30 shadow-glow bg-gradient-subtle"
-            : "border-[var(--border-subtle)] bg-white dark:bg-zinc-900 shadow-elevation-2"
+            ? "glass-card !border-accent/30 shadow-glow"
+            : "glass-card"
           }
         `}
       >
@@ -112,7 +112,7 @@ export function RecommendationsList() {
                   <ProductCard product={product} />
 
                   {/* Why recommended */}
-                  <div className="mt-3 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-[var(--border-subtle)]">
+                  <div className="mt-3 p-3 rounded-xl glass-section">
                     <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-1.5">
                       Why recommended
                     </p>

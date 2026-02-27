@@ -44,8 +44,7 @@ export function BottomSheet({
           max-h-[90vh] sm:max-h-[80vh] md:max-h-[70vh]
           flex flex-col
           rounded-t-3xl
-          bg-white dark:bg-zinc-900
-          border border-b-0 border-[var(--border-subtle)]
+          glass-strong
           shadow-elevation-5
           pb-[env(safe-area-inset-bottom)]
         `}

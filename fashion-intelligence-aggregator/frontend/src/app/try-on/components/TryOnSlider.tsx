@@ -25,7 +25,7 @@ export function TryOnSlider() {
         </div>
 
         {/* Loading state */}
-        <div className="relative rounded-3xl border border-[var(--border-subtle)] overflow-hidden bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-800 shadow-elevation-3">
+        <div className="relative rounded-3xl overflow-hidden glass-card shadow-elevation-3">
           <div className="absolute inset-0 animate-shimmer opacity-60" />
           <div className="relative aspect-[3/4] flex flex-col items-center justify-center p-8">
             {/* Spinner */}
@@ -81,7 +81,7 @@ export function TryOnSlider() {
       />
 
       {/* Tips */}
-      <div className="mt-6 p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-[var(--border-subtle)]">
+      <div className="mt-6 p-4 rounded-2xl glass-section">
         <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">
           Tips
         </p>

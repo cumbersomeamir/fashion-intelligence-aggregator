@@ -102,7 +102,7 @@ export function HistoryContent() {
       <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
         View past chats and generated try-on assets.
       </p>
-      <div className="mb-8 inline-flex rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-100/80 dark:bg-zinc-800/70 p-1">
+      <div className="mb-8 inline-flex rounded-xl glass-section p-1">
         <button
           type="button"
           onClick={() => setActiveTab("chat")}
@@ -129,7 +129,7 @@ export function HistoryContent() {
 
       {activeTab === "chat" ? (
         sessions.length === 0 ? (
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800/30 p-12 text-center">
+          <div className="rounded-2xl glass-card p-12 text-center">
             <p className="text-zinc-500 dark:text-zinc-400 text-sm">
               No chat sessions yet. Start a conversation on the Chat page.
             </p>
@@ -146,7 +146,7 @@ export function HistoryContent() {
               <li key={s.sessionId}>
                 <Link
                   href={`/chat?sessionId=${encodeURIComponent(s.sessionId)}`}
-                  className="block rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/80 p-4 hover:border-accent/50 hover:bg-accent/5 dark:hover:bg-accent/10 transition-colors"
+                  className="block rounded-xl glass-section p-4 hover:border-accent/50 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
@@ -186,7 +186,7 @@ export function HistoryContent() {
           {assets.map((asset, index) => (
             <div
               key={asset.id}
-              className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/80 p-3"
+              className="rounded-xl glass-section p-3"
             >
               <button
                 type="button"

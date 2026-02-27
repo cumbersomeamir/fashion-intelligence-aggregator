@@ -725,7 +725,7 @@ export function ReelsFeed() {
                     type="button"
                     onClick={() => startDupesFlow(reel)}
                     disabled={busy !== null}
-                    className="h-14 flex-1 rounded-full border border-white/30 bg-zinc-900/80 text-xl font-medium tracking-tight backdrop-blur-md disabled:opacity-70"
+                    className="h-14 flex-1 rounded-full border border-white/20 bg-white/10 text-xl font-medium tracking-tight backdrop-blur-xl disabled:opacity-70"
                   >
                     {busy === "dupes" ? "finding..." : "find dupes"}
                   </button>

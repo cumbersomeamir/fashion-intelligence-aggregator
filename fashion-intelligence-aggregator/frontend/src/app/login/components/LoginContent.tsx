@@ -38,7 +38,7 @@ export function LoginContent() {
         </Link>
 
         {/* Card */}
-        <div className="rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 shadow-elevation-2 p-8 sm:p-10">
+        <div className="rounded-3xl glass-card p-8 sm:p-10">
           <h1 className="font-headline text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white mb-2">
             Welcome back
           </h1>
