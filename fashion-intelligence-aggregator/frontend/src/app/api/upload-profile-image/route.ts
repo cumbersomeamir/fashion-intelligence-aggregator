@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
 
   const safeSessionId = sessionId.replace(/[^a-zA-Z0-9-_]/g, "_").slice(0, 64);
   const ext = getExt(mime);
-  const key = `profile-images/${safeSessionId}.${ext}`;
+  const key = `profile-images/${safeSessionId}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
 
   const client = new S3Client({
     region,
