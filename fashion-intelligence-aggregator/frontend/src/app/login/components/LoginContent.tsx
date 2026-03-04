@@ -101,10 +101,10 @@ export function LoginContent() {
               href="/vendor-register"
               className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl border-2 border-dashed border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-400 font-medium hover:border-accent/50 hover:text-accent dark:hover:text-accent transition-colors duration-200"
             >
-              <span>Register as a Vendor</span>
+              <span>Register as a Seller</span>
             </Link>
             <p className="text-center text-xs text-zinc-500 dark:text-zinc-400 mt-2">
-              Different flow — coming soon
+              Register your business and start uploading products
             </p>
           </div>
         </div>
