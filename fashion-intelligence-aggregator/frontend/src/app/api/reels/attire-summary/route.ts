@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
-
-const MODEL = "gemini-2.0-flash";
+import { generateContentWithTextModelFallback } from "@/lib/geminiTextModels";
 const ATTIRE_PROMPT =
   "Which fashion attire do you see in this picture, summarise how it looks in one line.";
 
@@ -52,8 +51,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const ai = new GoogleGenAI({ apiKey });
-    const resp = await ai.models.generateContent({
-      model: MODEL,
+    const resp = await generateContentWithTextModelFallback(ai, {
       contents: [
         {
           role: "user",
