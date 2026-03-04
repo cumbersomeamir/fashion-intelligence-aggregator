@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
-
-const MODEL = "gemini-2.0-flash";
+import { generateContentWithTextModelFallback } from "@/lib/geminiTextModels";
 
 const CLASSIFICATION_PROMPT = `You are a prompt classifier for a fashion concierge app. The user can either:
 1. CHAT - Ask questions, get advice, discuss fit/budget/style/fabric/occasion, comparisons, try-on help, general conversation
@@ -47,8 +46,7 @@ export async function POST(req: NextRequest) {
   const ai = new GoogleGenAI({ apiKey });
 
   try {
-    const resp = await ai.models.generateContent({
-      model: MODEL,
+    const resp = await generateContentWithTextModelFallback(ai, {
       contents: [
         {
           role: "user",

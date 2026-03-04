@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import Redis from "ioredis";
 import { memoryStore } from "./memory";
+import { generateContentWithTextModelFallback } from "@/lib/geminiTextModels";
 
 // ---- COST CONTROLS ----
 const MAX_TURNS = 10;
@@ -9,7 +10,6 @@ const MAX_MESSAGES = MAX_TURNS * 2;
 const MAX_CHARS_PER_MSG = 1200;
 const MAX_OUTPUT_TOKENS = 350;
 const TEMPERATURE = 0.4;
-const MODEL = "gemini-2.0-flash";
 
 const keyHistory = (sessionId: string) => `chat:${sessionId}:history`;
 const keySummary = (sessionId: string) => `chat:${sessionId}:summary`;
@@ -135,8 +135,7 @@ async function maybeSummarize(params: {
     ],
   });
 
-  const resp = await ai.models.generateContent({
-    model: MODEL,
+  const resp = await generateContentWithTextModelFallback(ai, {
     contents: summarizeContents,
     config: {
       temperature: 0.2,
@@ -196,8 +195,7 @@ export async function POST(req: NextRequest) {
   contents.push(...compressedHistory);
 
   try {
-    const resp = await ai.models.generateContent({
-      model: MODEL,
+    const resp = await generateContentWithTextModelFallback(ai, {
       contents,
       config: {
         temperature: TEMPERATURE,

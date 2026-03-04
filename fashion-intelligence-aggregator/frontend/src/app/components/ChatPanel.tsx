@@ -7,6 +7,8 @@ import { sendChat, getProfile, saveProfile, uploadProfileImage, getSavedProfileA
 import { detectTopicFromMessage } from "@/lib/topicDetection";
 import { AssetViewerModal } from "@/components/AssetViewerModal";
 import { ChatRichText } from "@/components/ChatRichText";
+import { AvatarStage } from "@/app/avatar/components/AvatarStage";
+import { useAvatarSpeech } from "@/app/avatar/hooks/useAvatarSpeech";
 import type { Topic } from "@/types";
 import type { ChatMessage } from "@/types";
 import type { Profile } from "@/types";
@@ -42,7 +44,16 @@ interface ChatPanelProps {
   onClose: () => void;
   /** Rendered above messages/search in the scroll area (e.g. try-on result card) */
   topSlot?: React.ReactNode;
+  /** Optional slot rendered above input row (used by /chat mode toggle) */
+  inputTopSlot?: React.ReactNode;
 }
+
+const AVATAR_SYSTEM_PROMPT = [
+  "You are a fashion concierge avatar.",
+  "Keep your responses super concise, conversational, and easy to speak.",
+  "Use maximum 2 short sentences.",
+  "No markdown or bullet points in responses.",
+].join(" ");
 
 function cleanMeasurements(profile: Profile | null): NonNullable<Profile["measurements"]> | undefined {
   const measurements = profile?.measurements;
@@ -94,7 +105,7 @@ function buildPersonalizedSystemPrompt(topic: Topic, profile: Profile | null): s
   ].join("\n");
 }
 
-export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
+export function ChatPanel({ onClose, topSlot, inputTopSlot }: ChatPanelProps) {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [personalizeEnabled, setPersonalizeEnabled] = useState(false);
@@ -110,8 +121,13 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
   const [savedAssets, setSavedAssets] = useState<SavedProfileAsset[]>([]);
   const [applyingSavedAssetId, setApplyingSavedAssetId] = useState<string | null>(null);
   const [tryOnViewerIndex, setTryOnViewerIndex] = useState<number | null>(null);
+  const [assistantMode, setAssistantMode] = useState<"chat" | "avatar">("chat");
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [avatarLastSpokenAt, setAvatarLastSpokenAt] = useState<Date | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const searchParams = useSearchParams();
+  const avatarModeFromUrl = searchParams.get("mode")?.trim().toLowerCase();
+  const { supported: avatarSpeechSupported, speaking: avatarSpeaking, error: avatarSpeechError, speak: avatarSpeak, stop: avatarStop } = useAvatarSpeech();
   const {
     chatMessages,
     setChatMessages,
@@ -162,6 +178,18 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
   }, [sessionIdFromUrl, setCurrentSessionId, setChatMessages, setCurrentTopic]);
 
   useEffect(() => {
+    setAssistantMode(avatarModeFromUrl === "avatar" ? "avatar" : "chat");
+  }, [avatarModeFromUrl]);
+
+  useEffect(() => {
+    return () => avatarStop();
+  }, [avatarStop]);
+
+  useEffect(() => {
+    if (assistantMode === "chat") avatarStop();
+  }, [assistantMode, avatarStop]);
+
+  useEffect(() => {
     if (!currentSessionId || chatMessages.length === 0) return;
     const t = setTimeout(() => {
       fetch(`/api/sessions/${currentSessionId}`, {
@@ -200,6 +228,7 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
     const text = input.trim();
     if (!text || sending) return;
     setInput("");
+    setAvatarError(null);
     const userMsg: ChatMessage = {
       id: crypto.randomUUID(),
       role: "user",
@@ -208,6 +237,16 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
     setChatMessages((prev) => [...prev, userMsg]);
     setSending(true);
     try {
+      if (assistantMode === "avatar") {
+        const topic = detectTopicFromMessage(text);
+        setCurrentTopic(topic);
+        const res = await sendChat(text, topic, AVATAR_SYSTEM_PROMPT, currentSessionId ?? undefined);
+        setCurrentTopic(res.topic as Topic);
+        avatarSpeak(res.message);
+        setAvatarLastSpokenAt(new Date());
+        return;
+      }
+
       const switchRes = await fetch("/api/model-switcher", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -252,18 +291,22 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
         ]);
       }
     } catch (err) {
-      setChatMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          role: "assistant",
-          content: "Sorry, I couldn’t reach the server. Try again.",
-        },
-      ]);
+      if (assistantMode === "avatar") {
+        setAvatarError(err instanceof Error ? err.message : "Avatar response failed.");
+      } else {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content: "Sorry, I couldn’t reach the server. Try again.",
+          },
+        ]);
+      }
     } finally {
       setSending(false);
     }
-  }, [input, sending, searchCountry, currentSessionId, personalizeEnabled, profile, setChatMessages, setCurrentTopic]);
+  }, [input, sending, assistantMode, searchCountry, currentSessionId, personalizeEnabled, profile, setChatMessages, setCurrentTopic, avatarSpeak]);
 
   const openProduct = useCallback(
     async (r: ShoppingResult) => {
@@ -686,7 +729,7 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
             )}
           </div>
         ))}
-        {sending && (
+        {sending && assistantMode === "chat" && (
           <div className="flex justify-start gap-2">
             <div className="shrink-0 w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center mt-0.5" aria-hidden>
               <span className="text-accent text-xs font-bold">AI</span>
@@ -742,7 +785,8 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
             <p className="text-[10px] text-red-600 dark:text-red-400 shrink-0 whitespace-nowrap">{uploadImageError}</p>
           )}
           <div className="flex-1 min-w-[80px]" />
-          <div className="flex gap-1.5 shrink-0">
+          {assistantMode === "chat" && (
+            <div className="flex gap-1.5 shrink-0">
             <button
               type="button"
               onClick={() => setPersonalizeEnabled((prev) => !prev)}
@@ -771,8 +815,64 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
                 {label}
               </button>
             ))}
-          </div>
+            </div>
+          )}
         </div>
+        {inputTopSlot}
+        <div className="flex items-center justify-between gap-2">
+          <div className="inline-flex rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-100/80 dark:bg-zinc-800/70 p-1">
+            <button
+              type="button"
+              onClick={() => setAssistantMode("chat")}
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                assistantMode === "chat"
+                  ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm"
+                  : "text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white"
+              }`}
+            >
+              Chat
+            </button>
+            <button
+              type="button"
+              onClick={() => setAssistantMode("avatar")}
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                assistantMode === "avatar"
+                  ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm"
+                  : "text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white"
+              }`}
+            >
+              Avatar
+            </button>
+          </div>
+          {assistantMode === "avatar" && (
+            <span className={`text-[11px] px-2.5 py-1 rounded-full border ${
+              sending
+                ? "bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-900/30 dark:border-amber-800 dark:text-amber-300"
+                : avatarSpeaking
+                ? "bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-800 dark:text-indigo-300"
+                : "bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-300"
+            }`}>
+              {sending ? "Thinking..." : avatarSpeaking ? "Speaking..." : "Ready"}
+            </span>
+          )}
+        </div>
+        {assistantMode === "avatar" && (
+          <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/60 dark:bg-zinc-800/50 p-2 sm:p-2.5 space-y-2">
+            <AvatarStage speaking={avatarSpeaking} thinking={sending} />
+            <div className="flex flex-wrap items-center gap-2 text-[11px]">
+              {!avatarSpeechSupported && (
+                <span className="text-red-600 dark:text-red-400">
+                  Browser does not support text-to-speech.
+                </span>
+              )}
+              {avatarLastSpokenAt && !sending && (
+                <span className="text-zinc-500 dark:text-zinc-400">
+                  Last spoken: {avatarLastSpokenAt.toLocaleTimeString()}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
         {/* Input row */}
         <div className="flex gap-2">
           <input
@@ -780,7 +880,7 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleUnifiedSubmit()}
-            placeholder="Ask or search for products…"
+            placeholder={assistantMode === "avatar" ? "Ask your avatar concierge…" : "Ask or search for products…"}
             className="flex-1 min-w-0 min-h-[44px] sm:min-h-[38px] rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 px-3 py-2.5 sm:py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 touch-manipulation"
           />
           <button
@@ -794,6 +894,11 @@ export function ChatPanel({ onClose, topSlot }: ChatPanelProps) {
         </div>
         {tryOnError && (
           <p className="text-[11px] text-red-600 dark:text-red-400 px-1 pt-0.5">{tryOnError}</p>
+        )}
+        {(avatarError || avatarSpeechError) && (
+          <p className="text-[11px] text-red-600 dark:text-red-400 px-1 pt-0.5">
+            Avatar: {avatarError ?? avatarSpeechError}
+          </p>
         )}
       </div>
 
