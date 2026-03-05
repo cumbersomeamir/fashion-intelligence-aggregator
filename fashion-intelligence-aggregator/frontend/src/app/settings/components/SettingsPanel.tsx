@@ -29,9 +29,9 @@ export function SettingsPanel() {
         <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-4">
           Appearance
         </h2>
-        <div className="rounded-2xl border border-[var(--border-subtle)] bg-white dark:bg-zinc-900 shadow-elevation-2 overflow-hidden">
+        <div className="rounded-2xl glass-card overflow-hidden">
           {/* Dark mode toggle */}
-          <label className="flex items-center justify-between gap-4 p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer border-b border-[var(--border-subtle)]">
+          <label className="flex items-center justify-between gap-4 p-4 hover:bg-white/20 dark:hover:bg-white/5 transition-colors cursor-pointer border-b border-[var(--border-subtle)]">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
                 <span className="text-lg">{darkMode ? "🌙" : "☀️"}</span>
@@ -79,7 +79,7 @@ export function SettingsPanel() {
           </div>
 
           {/* Reduce motion toggle */}
-          <label className="flex items-center justify-between gap-4 p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer">
+          <label className="flex items-center justify-between gap-4 p-4 hover:bg-white/20 dark:hover:bg-white/5 transition-colors cursor-pointer">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
                 <span className="text-lg">✨</span>
@@ -116,7 +116,7 @@ export function SettingsPanel() {
         <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-4">
           Data & Privacy
         </h2>
-        <div className="rounded-2xl border border-[var(--border-subtle)] bg-white dark:bg-zinc-900 shadow-elevation-2 overflow-hidden">
+        <div className="rounded-2xl glass-card overflow-hidden">
           <div className="p-4 space-y-3">
             <button
               type="button"

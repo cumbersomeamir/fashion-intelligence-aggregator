@@ -589,7 +589,7 @@ export function ChatPanel({ onClose, topSlot, inputTopSlot }: ChatPanelProps) {
                 <ChatRichText content={m.content} variant="user" />
               </div>
             ) : m.type === "try-on" && m.tryOnResultImage && m.tryOnProduct ? (
-              <div className="max-w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-sm p-4 sm:p-5">
+              <div className="max-w-full rounded-2xl glass-card p-4 sm:p-5">
                 <div className="flex items-center gap-2 mb-4">
                   <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 text-accent text-xs font-semibold">
                     <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
@@ -645,7 +645,7 @@ export function ChatPanel({ onClose, topSlot, inputTopSlot }: ChatPanelProps) {
               </div>
             ) : m.type === "search" && m.searchResults ? (
               <div className="max-w-full space-y-2">
-                <div className="rounded-2xl px-3 sm:px-4 py-2.5 text-sm bg-zinc-100 dark:bg-zinc-800/90 text-zinc-900 dark:text-zinc-100 border border-zinc-200/60 dark:border-zinc-700/60">
+                <div className="rounded-2xl px-3 sm:px-4 py-2.5 text-sm glass-bubble text-zinc-900 dark:text-zinc-100">
                   <p className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 mb-1">Concierge</p>
                   <ChatRichText content={m.content} variant="assistant" />
                 </div>
@@ -656,7 +656,7 @@ export function ChatPanel({ onClose, topSlot, inputTopSlot }: ChatPanelProps) {
                     return (
                       <div
                         key={r.position}
-                        className="flex gap-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/80 p-3 hover:border-accent/50 transition-colors"
+                        className="flex gap-3 rounded-xl glass-section p-3 hover:border-accent/50 transition-colors"
                       >
                         <div className="shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-700">
                           {(r.thumbnail || r.serpapi_thumbnail) && (
@@ -708,7 +708,7 @@ export function ChatPanel({ onClose, topSlot, inputTopSlot }: ChatPanelProps) {
                 </div>
               </div>
             ) : (
-              <div className="max-w-[90%] sm:max-w-[85%] rounded-2xl px-3 sm:px-4 py-2.5 text-sm break-words bg-zinc-100 dark:bg-zinc-800/90 text-zinc-900 dark:text-zinc-100 border border-zinc-200/60 dark:border-zinc-700/60">
+              <div className="max-w-[90%] sm:max-w-[85%] rounded-2xl px-3 sm:px-4 py-2.5 text-sm break-words glass-bubble text-zinc-900 dark:text-zinc-100">
                 {m.role === "assistant" && (
                   <p className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 mb-1">Concierge</p>
                 )}
@@ -734,7 +734,7 @@ export function ChatPanel({ onClose, topSlot, inputTopSlot }: ChatPanelProps) {
             <div className="shrink-0 w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center mt-0.5" aria-hidden>
               <span className="text-accent text-xs font-bold">AI</span>
             </div>
-            <div className="rounded-2xl px-3 sm:px-4 py-2.5 bg-zinc-100 dark:bg-zinc-800 text-sm text-zinc-500 border border-zinc-200/60 dark:border-zinc-700/60">
+            <div className="rounded-2xl px-3 sm:px-4 py-2.5 glass-bubble text-sm text-zinc-500">
               …
             </div>
           </div>
@@ -742,7 +742,7 @@ export function ChatPanel({ onClose, topSlot, inputTopSlot }: ChatPanelProps) {
       </div>
 
       {/* Thin bottom bar: options + input (chatbox style) — solid bg + z-10 on mobile so nothing overlaps */}
-      <div className="shrink-0 relative z-10 isolate rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 sm:bg-white/95 sm:dark:bg-zinc-900/95 backdrop-blur-sm shadow-[0_-2px 12px rgba(0,0,0,0.06)] dark:shadow-[0_-2px 12px rgba(0,0,0,0.2)] mx-2 sm:mx-0 mb-2 sm:mb-3 mb-[max(0.5rem,env(safe-area-inset-bottom))] p-2 sm:p-2.5 space-y-2">
+      <div className="shrink-0 relative z-10 isolate rounded-2xl glass-card mx-2 sm:mx-0 mb-2 sm:mb-3 mb-[max(0.5rem,env(safe-area-inset-bottom))] p-2 sm:p-2.5 space-y-2">
         {/* Options row — single row on mobile, no wrap; chips scroll horizontally */}
         <div className="flex items-center gap-2 min-h-0 overflow-x-auto overflow-y-hidden scrollbar-hide sm:flex-wrap">
           <input
@@ -921,7 +921,7 @@ export function ChatPanel({ onClose, topSlot, inputTopSlot }: ChatPanelProps) {
             role="dialog"
             aria-modal="true"
             aria-label="Saved Assets"
-            className="relative z-10 w-full max-w-2xl max-h-[80vh] overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-2xl"
+            className="relative z-10 w-full max-w-2xl max-h-[80vh] overflow-hidden rounded-2xl glass-card shadow-2xl"
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-200 dark:border-zinc-700">
               <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Saved Assets</h3>

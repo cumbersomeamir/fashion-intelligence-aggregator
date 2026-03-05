@@ -31,7 +31,7 @@ export function TopicChips({ currentTopic, onSelect, className = "", compact }: 
               }
               ${isActive
                 ? "bg-gradient-accent text-white border-transparent shadow-button"
-                : "bg-white dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 border-[var(--border-subtle)] hover:border-accent/30 hover:text-accent hover:shadow-elevation-2"
+                : "glass-section text-zinc-700 dark:text-zinc-300 hover:border-accent/30 hover:text-accent hover:shadow-elevation-2"
               }
             `}
           >

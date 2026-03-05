@@ -14,12 +14,12 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
     <div
       ref={ref}
       className={`
-        relative rounded-3xl border overflow-hidden
-        bg-white dark:bg-zinc-900
+        relative rounded-3xl overflow-hidden
+        glass-card
         transition-all duration-400 ease-out-expo
         ${highlight
-          ? "ring-2 ring-accent ring-offset-2 dark:ring-offset-zinc-950 shadow-elevation-4 border-accent/30"
-          : "border-[var(--border-subtle)] shadow-elevation-2 hover:shadow-elevation-3 hover:border-[var(--border-default)]"
+          ? "ring-2 ring-accent ring-offset-2 dark:ring-offset-zinc-950 shadow-elevation-4 !border-accent/30"
+          : "hover:shadow-elevation-3"
         }
         ${inactive ? "opacity-60 pointer-events-none" : ""}
         ${pulse && highlight ? "animate-card-pulse" : ""}

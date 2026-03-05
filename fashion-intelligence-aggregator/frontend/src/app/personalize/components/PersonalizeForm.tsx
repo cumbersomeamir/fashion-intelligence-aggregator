@@ -75,7 +75,7 @@ const SECTION_ICONS: Record<string, React.ReactNode> = {
 
 function Section({ number, title, hint, children }: { number: string; title: string; hint?: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border border-[var(--border-subtle)] p-4 sm:p-5 space-y-4 bg-white dark:bg-zinc-900 shadow-elevation-1 transition-all duration-300 hover:shadow-elevation-2">
+    <section className="rounded-2xl p-4 sm:p-5 space-y-4 glass-section transition-all duration-300 hover:shadow-elevation-2">
       <div className="flex items-start gap-3">
         <div className="w-9 h-9 rounded-xl bg-gradient-subtle flex items-center justify-center text-accent shrink-0">
           {SECTION_ICONS[number] || <span className="font-bold text-sm">{number}</span>}

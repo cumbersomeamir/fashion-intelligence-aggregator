@@ -105,7 +105,7 @@ export function AdminContent() {
       <h1 className="font-headline text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white">Admin Reels Upload</h1>
       <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">Create a reel item that will appear on the /reels feed.</p>
 
-      <form onSubmit={onSubmit} className="mt-6 rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-4 sm:p-6 space-y-3">
+      <form onSubmit={onSubmit} className="mt-6 rounded-2xl glass-card p-4 sm:p-6 space-y-3">
         <input value={creator} onChange={(e) => setCreator(e.target.value)} placeholder="@creator" className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-3 py-2" />
         <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Reel title" className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-3 py-2" />
         <input value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="Brand" className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-3 py-2" />
@@ -138,7 +138,7 @@ export function AdminContent() {
         <h2 className="font-semibold text-zinc-900 dark:text-white mb-3">Current Reels</h2>
         <div className="space-y-2">
           {reels.map((reel) => (
-            <div key={reel.id} className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-3">
+            <div key={reel.id} className="rounded-xl glass-section p-3">
               <p className="text-sm font-medium text-zinc-900 dark:text-white">{reel.title}</p>
               <p className="text-xs text-zinc-500 dark:text-zinc-400">{reel.creator} | {reel.brand} | {reel.priceHint}</p>
             </div>
